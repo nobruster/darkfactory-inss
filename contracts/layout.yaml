@@ -11,7 +11,12 @@
 # TODO número neste arquivo foi MEDIDO na fonte, não estimado.
 # Evidências: evidence/_perfil-cobertura.json · evidence/_totais-controle.json
 
-version: 2
+version: 3
+# v3 (16/09/2026) — auditoria por três modelos independentes (Opus, Sonnet,
+# Haiku) contra a estrutura da fábrica. 9 objeções bloqueantes; 8 confirmadas
+# por medição e corrigidas, 1 REFUTADA (ver DF-INSS-005/armadilha_inversa).
+# Achado central: "a fábrica olha para espécie com microscópio e para o resto
+# não olha". As mudanças desta versão estão em docs/adrs/0006-auditoria.md.
 dataset: D.SDA.PDA.003.EMI
 competencia: "2026-01"
 origem: INSS · SUIBE · extração DATAPREV
@@ -41,8 +46,55 @@ controle:
   max_vl_liquido: "183725.76"
   linhas_invalidas: 0
   ufs_distintas: 27                     # cobertura nacional confirmada
-  bancos_distintos: 21
+  bancos_distintos: 21          # inclui 2 sentinelas — instituições reais: 19
+  sentinelas_banco: ["996", "998"]   # não são instituição financeira (ADR 0005)
   especies_distintas: 65
+
+# ═════════════════════════════════════════════════════════════
+# ÂNCORA POR COMPETÊNCIA — o juiz não pode se desligar
+# ═════════════════════════════════════════════════════════════
+# ⚠ Até 16/09/2026 o bloco `controle:` acima era a única âncora, e valia só
+# para 2026-01. Nas outras duas competências os gates de total se DESLIGAVAM
+# (`if comp == contrato["competencia"]`) e o packet mesmo assim dizia ACEITO,
+# com "count_confere": false lá dentro. 82 milhões de linhas publicadas sem
+# que nada jamais as tivesse conferido contra a fonte.
+# Auditoria de 16/09/2026, objeção #28 — a mais grave das 9.
+#
+# Cada número abaixo foi medido por scripts/totais_controle.py varrendo o ZIP
+# congelado, ANTES e INDEPENDENTE do Bronze. Bronze conferir contra si mesmo
+# não é gate: é o réu assinando o próprio alvará.
+#
+# Competência sem âncora aqui NÃO publica como ACEITO — publica como
+# ACEITO_SEM_ANCORA, que é um estado visível, não um silêncio.
+controle_por_competencia:
+  "2026-01":
+    count_linhas: 41572553
+    sum_vl_liquido: "78521752562.12"
+    min_vl_liquido: "0.00"
+    max_vl_liquido: "183725.76"
+    linhas_invalidas: 0
+    medido_em: "2026-09-15"
+    evidencia: "evidence/_totais-controle.json"
+  "2026-02":
+    count_linhas: 41522152
+    sum_vl_liquido: "78441374955.39"
+    min_vl_liquido: "0.00"
+    max_vl_liquido: "60588.24"
+    linhas_invalidas: 0
+    medido_em: "2026-09-16"
+    evidencia: "evidence/_totais-202602.json"
+  "2026-03":
+    count_linhas: 41719140
+    sum_vl_liquido: "78771556568.72"
+    min_vl_liquido: "0.00"
+    max_vl_liquido: "60588.24"
+    linhas_invalidas: 0
+    medido_em: "2026-09-16"
+    evidencia: "evidence/_totais-202603.json"
+
+# O máximo de 2026-01 (183.725,76) é 3× o das outras duas competências.
+# Não é erro: é um outlier real de janeiro. Mas mostra por que faixa medida
+# numa competência não vira regra para as outras — ver objeção #14.
 
 # ═════════════════════════════════════════════════════════════
 # LEITURA POR POSIÇÃO — obrigatório
@@ -143,7 +195,10 @@ colunas:
     milhar: "."
     decimal: ","
     largura: 16
-    faixa_observada: ["0.00", "183725.76"]
+    # Medido em 2026-01 — é OBSERVAÇÃO daquela competência, não propriedade
+    # da coluna. Em 2026-03 o máximo foi 60.588,24. Nenhum gate testa faixa:
+    # um valor absurdo passaria hoje. Auditoria 16/09/2026, objeção #14.
+    faixa_observada_2026_01: ["0.00", "183725.76"]
     nota: "LÍQUIDO de consignado. NÃO mede valor do benefício."
 
   - pos: 10
@@ -269,7 +324,11 @@ defeitos_fonte:
       "Pensão por Morte Ex-": ["29", "84"]
       "Renda Mensal Vitalíc": ["30", "40"]
     colisoes_outros_campos:
+      # MEDIDO em 2026-03 sobre o Silver. O contrato v2 listava só a primeira:
+      # as outras duas existiam desde o começo e ninguém tinha olhado.
+      # Auditoria 16/09/2026, objeção #3.
       "Banco Cooperativ": ["748", "756"]        # Sicoob e Sicredi
+      "Banco do Estado": ["037", "047"]         # Pará e Sergipe — 111.970 linhas
       "Conta-Corrente": ["Ccf", "Ccl"]
     exemplo_gravidade: |
       'Aposentadoria Invali' funde 6 espécies distintas: invalidez acidentária
@@ -298,7 +357,7 @@ defeitos_fonte:
       NÃO escolher em silêncio. O Silver preserva AMBOS:
         especie_nome        = do dicionário oficial (nomenclatura atual)
         especie_nome_fonte  = como o SUIBE gravou (nomenclatura do sistema)
-        especie_nome_confere = false nos 22 casos
+        especie_nome_confere = false nos 29 casos
       O Gold usa especie_rotulo (código + nome oficial). Quem precisa do
       nome operacional do INSS tem especie_nome_fonte disponível.
     escalar_para: "dono do dado — decidir qual nomenclatura é canônica para relatório"
@@ -326,6 +385,36 @@ defeitos_fonte:
       janeiro. Reinstaurado ao processar fevereiro, agora com medição por
       competência — que é como deveria ter sido desde o início.
 
+  - id: DF-INSS-005
+    campo: "mun_residencia × uf_residencia"
+    descricao: "Duas UFs diferentes no mesmo registro — a do município e a do beneficiário"
+    medido_em: "2026-03"
+    impacto_medido:
+      codigos_suibe: 5572
+      nomes_distintos: 5572
+      codigos_com_mais_de_um_nome: 0      # o código É chave — bijetivo
+      nomes_com_mais_de_um_codigo: 0
+      linhas_com_uf_divergente: 429803    # amostra de 7 UFs, 15.230.339 linhas
+    descricao_longa: |
+      O campo mun_residencia vem como '21504-Sp-São Paulo': código, UF DO
+      MUNICÍPIO, nome. A coluna uf_residencia é a UF DO BENEFICIÁRIO. São fatos
+      distintos e divergem: 27 UFs de beneficiário apontam para o município
+      21504. Alguém que trate as duas como a mesma coisa erra sem ver erro.
+    armadilha_inversa: |
+      Uma leitura apressada de "5.563 dos 5.572 códigos aparecem em mais de uma
+      UF" sugere que o código não é único e pede chave (uf, codigo). É o
+      contrário: essa chave PARTIRIA São Paulo em 27 municípios e o total
+      continuaria batendo — fusão silenciosa ao inverso, por fragmentação.
+      Esta objeção foi levantada e REFUTADA por medição em 16/09/2026.
+    classificacao: CONTRACT_AMBIGUITY
+    tratamento: |
+      mun_residencia_codigo  = chave do município (única, verificada por gate)
+      mun_residencia_uf      = UF do município, extraída do próprio campo
+      uf_residencia          = UF do beneficiário — NÃO é a mesma coisa
+      O Gold agrega por uf_residencia (é a pergunta que ele responde).
+      Agregação por município usa mun_residencia_codigo sozinho, nunca composto.
+    escalar_para: "dono do dado — qual UF é a correta para política pública regional"
+
 # ═════════════════════════════════════════════════════════════
 # REGRAS DE ACEITAÇÃO — o que reprova
 # ═════════════════════════════════════════════════════════════
@@ -351,7 +440,10 @@ aceitacao:
     - "grão único: (competencia, banco_codigo, uf_residencia) sem duplicata"
     - "sum(gold.vl_total) == sum(silver.vl_liquido)           # tolerância ZERO"
     - "count(distinct uf_residencia) == 27"
-    - "banco 998 presente como linha própria, jamais agregado a outro banco"
+    - "sentinelas 996 e 998 em linha própria, jamais agregadas a um banco"
+    - "sentinelas 996 e 998 com posicao_na_uf nula — fora do ranking bancário"
+    - "toda coluna vl_* é DECIMAL — avg() em DuckDB devolve DOUBLE (ADR 0002)"
+    - "count(distinct banco_codigo) > count(distinct banco_nome)  # DF-INSS-002"
 
 # ═════════════════════════════════════════════════════════════
 # TRATAMENTO DE REJEIÇÃO
@@ -375,10 +467,19 @@ sentinelas:
   "Nao Informado":
     campos: [sexo]
     tratamento: "categoria própria"
+  # O ADR 0005 raciocina por CLASSE — "não é instituição financeira" —, mas a
+  # v2 deste contrato listava só o 998. O 996 estava ranqueado na posição 19 de
+  # uma UF, como se fosse banco. Auditoria 16/09/2026, objeção #5.
   "998":
     campo: banco
+    nome_na_fonte: "Instituto Nacion"          # 152.879 linhas em 2026-03
     significado: "INSS pagando direto — não é instituição financeira"
     tratamento: "linha própria no Gold, rotulada 'INSS-DIRETO'; excluída do ranking bancário"
+  "996":
+    campo: banco
+    nome_na_fonte: "Acordos Internac"          # 20.554 linhas em 2026-03
+    significado: "acordo previdenciário internacional — não é instituição financeira"
+    tratamento: "mesmo do 998: linha própria, fora do ranking bancário"
   "00000":
     campo: mun_residencia
     significado: "endereço ausente"
