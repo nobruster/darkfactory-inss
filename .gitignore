@@ -1,0 +1,21 @@
+# Artefatos de runtime — produzidos rodando a fábrica, nunca clonando.
+# Um clone novo precisa executar o pipeline para populá-los.
+
+_raw/*.zip
+landing/
+lakehouse/
+.venv/
+
+# evidências são geradas por execução
+evidence/*.log
+evidence/_perfil-cobertura.json
+evidence/_totais-controle.json
+evidence/_validacao-contrato.txt
+
+# os packets de gate FICAM versionados — são a prova do que rodou:
+!evidence/bronze-run.json
+!evidence/silver-run.json
+!evidence/gold-run.json
+
+__pycache__/
+*.pyc

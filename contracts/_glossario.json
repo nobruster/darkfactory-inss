@@ -1,0 +1,15 @@
+{
+  "Espécie": "Nome da espécie do benefício.",
+  "Despacho": "Tipo de despacho na concessão do benefício",
+  "Clientela": "Divisão do ramo de atividade em urbano e rural.",
+  "Sexo": "Sexo do titular do benefício.",
+  "Tipo de Benefício": "Normal, desdobrado (no caso de mais de uma pessoa com direito ao recebimento) ou  Pensão Alimentícia",
+  "UF": "Estado onde reside o titular do benefício",
+  "Meio pagamento": "Indica se o benefício é pago  por conta/corrente ou cartão magnético",
+  "Banco": "Banco responsável pelo pagamento",
+  "Mun Pagto": "Município do Órgão Pagador do Benefício",
+  "Mun Resid": "Município de Residência do titular do benefício",
+  "Valor líquido": "Valor do pagamento com os descontos (líquido)",
+  "Ramo Atividade": "Ramo de atividade exercida pelo titular do benefício.",
+  "Data do início de validade": "Data em que o crédito do pagamento do  benefício foi disponibilizado ao banco pagador para saque"
+}

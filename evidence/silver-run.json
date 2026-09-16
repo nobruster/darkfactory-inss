@@ -1,0 +1,21 @@
+{
+  "status": "ACEITO",
+  "publicado": true,
+  "competencia": "2026-01",
+  "gerado_em": "2026-09-16T01:46:17.692763+00:00",
+  "linhas": 41572553,
+  "sum_vl_liquido": "78521752562.12",
+  "gates": {
+    "count_confere_bronze": true,
+    "soma_confere_bronze": true,
+    "especie_nome_sem_nulo": true,
+    "rotulos_distintos": 65,
+    "dt_credito_sem_nulo": true
+  },
+  "DF-INSS-004": {
+    "codigos_divergentes": 29,
+    "classificacao": "CONTRACT_AMBIGUITY",
+    "nota": "fonte e dicionário usam nomenclaturas diferentes; ambos preservados"
+  },
+  "segundos": 27
+}

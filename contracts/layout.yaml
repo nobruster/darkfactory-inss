@@ -1,0 +1,376 @@
+# Contrato — INSS Benefícios Emitidos (D.SDA.PDA.003.EMI)
+#
+# ESTE ARQUIVO É O JUIZ. Congelado.
+# Se o código e este contrato discordarem, o contrato decide quem está errado.
+# Nunca ajuste este arquivo para fazer um teste passar.
+#
+# Fontes oficiais (baixadas 15/09/2026, checksums em CHECKSUMS.txt):
+#   glossario-campos.xlsx   — glossário oficial dos campos (PDA 2023-2025)
+#   especies-oficial.xlsx   — espécies código→nome (PDA 2025-2027), 65 entradas
+#
+# TODO número neste arquivo foi MEDIDO na fonte, não estimado.
+# Evidências: evidence/_perfil-cobertura.json · evidence/_totais-controle.json
+
+version: 2
+dataset: D.SDA.PDA.003.EMI
+competencia: "2026-01"
+origem: INSS · SUIBE · extração DATAPREV
+
+fonte:
+  arquivo: D.SDA.PDA.003.EMI.202601.csv
+  zip_bytes: 575423625
+  zip_sha256: 428626857daf30a3674d10b11bdd3f1ebd4a31d773de7c7ce5e3457f096f82e8
+  csv_bytes: 11681887539
+  encoding: latin-1          # NÃO é UTF-8
+  separador: ";"
+  terminador: CRLF
+  cabecalho: true
+  colunas: 14
+  ordenacao: "por UF — amostra do início NÃO representa o conjunto"
+
+# ═════════════════════════════════════════════════════════════
+# TOTAIS DE CONTROLE — a âncora de integridade
+# ═════════════════════════════════════════════════════════════
+# Medidos na fonte em 15/09/2026, varredura completa das 41.572.553 linhas.
+# Qualquer etapa que altere estes números está ERRADA.
+# Tolerância: ZERO. Não há banda.
+controle:
+  count_linhas: 41572553
+  sum_vl_liquido: "78521752562.12"     # R$ 78,5 bilhões
+  min_vl_liquido: "0.00"
+  max_vl_liquido: "183725.76"
+  linhas_invalidas: 0
+  ufs_distintas: 27                     # cobertura nacional confirmada
+  bancos_distintos: 21
+  especies_distintas: 65
+
+# ═════════════════════════════════════════════════════════════
+# LEITURA POR POSIÇÃO — obrigatório
+# ═════════════════════════════════════════════════════════════
+# O cabeçalho traz "Espécie" DUAS vezes (posições 12 e 13).
+# Verificado: csv.DictReader mantém a 13 e PERDE a 12 — que é o código.
+leitura:
+  modo: posicional
+  proibido: "ler por nome do cabeçalho"
+
+colunas:
+  - pos: 0
+    nome: despacho
+    origem: "Despacho"
+    tipo: texto
+    descricao_oficial: "Tipo de despacho na concessão do benefício"
+    dominio: aberto            # sem tabela oficial publicada
+    truncado_em: 20
+
+  - pos: 1
+    nome: sexo
+    origem: "Sexo."            # com ponto no cabeçalho original
+    tipo: texto
+    descricao_oficial: "Sexo do titular do benefício."
+    dominio: [Feminino, Masculino, "Nao Informado"]
+    validado: "OK — zero violações em 41,5M linhas"
+
+  - pos: 2
+    nome: clientela
+    origem: "Clientela"
+    tipo: texto
+    descricao_oficial: "Divisão do ramo de atividade em urbano e rural."
+    dominio: [Urbano, Rural, "{ñ class}"]   # Urbano, não "Urbana"
+    validado: "OK"
+
+  - pos: 3
+    nome: tipo_beneficio
+    origem: "Tipo Benefício"
+    tipo: texto
+    descricao_oficial: "Normal, desdobrado ou Pensão Alimentícia"
+    dominio: [Normal, Desdobrado, Origem, Pa]
+    validado: "OK"
+    nota: "'Origem' NÃO consta no glossário — valor não documentado"
+
+  - pos: 4
+    nome: uf_residencia
+    origem: "UF"
+    tipo: texto
+    descricao_oficial: "Estado onde reside o titular do benefício"
+    cardinalidade: 27
+    nota: "É RESIDÊNCIA, não pagamento. Cuidado ao cruzar com mun_pagto."
+
+  - pos: 5
+    nome: meio_pagamento
+    origem: "Meio pagamento"
+    tipo: texto
+    descricao_oficial: "Indica se o benefício é pago por conta/corrente ou cartão magnético"
+    dominio: ["Ccf - Conta-Corrente", "Ccl - Conta-Corrente",
+              "Cmg - Cartao Magneti", "Pab - Pagamento Alte"]
+    validado: "OK — 'Pab' declarado mas ausente em 2026-01"
+    defeito: "Ccf e Ccl ficam INDISTINGUÍVEIS após truncamento em 20 chars"
+
+  - pos: 6
+    nome: banco
+    origem: "Banco"
+    tipo: composto              # "NNN-Nome"
+    descricao_oficial: "Banco responsável pelo pagamento"
+    formato: "{codigo:3}-{nome}"
+    codigo: FEBRABAN/COMPE
+    cardinalidade: 21
+    sentinela:
+      "998": "Instituto Nacional — NÃO é banco. INSS pagando direto."
+    defeito: "756 e 748 (Sicoob/Sicredi) colidem como 'Banco Cooperativ'"
+
+  - pos: 7
+    nome: mun_pagto
+    origem: "Mun Pagto"
+    tipo: composto              # "NNNNN-UF-Nome"
+    descricao_oficial: "Município do Órgão Pagador do Benefício"
+    codigo: SUIBE               # 5 dígitos, NÃO é IBGE
+
+  - pos: 8
+    nome: mun_residencia
+    origem: "Mun Resid"
+    tipo: composto
+    descricao_oficial: "Município de Residência do titular do benefício"
+    codigo: SUIBE
+    sentinela:
+      "00000": "Zerada — endereço ausente"
+
+  - pos: 9
+    nome: vl_liquido
+    origem: "Vl Líquido"
+    tipo: decimal
+    escala: 2
+    descricao_oficial: "Valor do pagamento com os descontos (líquido)"
+    formato_origem: pt-BR       # "        1.621,00"
+    milhar: "."
+    decimal: ","
+    largura: 16
+    faixa_observada: ["0.00", "183725.76"]
+    nota: "LÍQUIDO de consignado. NÃO mede valor do benefício."
+
+  - pos: 10
+    nome: ramo_atividade
+    origem: "Ramo Atividade"
+    tipo: texto
+    descricao_oficial: "Ramo de atividade exercida pelo titular do benefício."
+    dominio: [Comerciario, Rural, Irrelevante, Industriario, "Servidor Publico",
+              "Transportes e Carga", Ferroviario, Bancario, Maritimo, "{ñ class}"]
+    validado: "OK"
+
+  - pos: 11
+    nome: dt_credito
+    origem: "Dt início validade"
+    tipo: data
+    formato: "DD/MM/YYYY"
+    descricao_oficial: "Data em que o crédito foi disponibilizado ao banco pagador"
+    nota: "É a data do CRÉDITO, não DIB/DDB. Atravessa a virada do mês."
+
+  - pos: 12                     # ⭐ a coluna que a leitura por nome perde
+    nome: especie_codigo
+    origem: "Espécie"
+    tipo: texto                 # NUNCA int — "01" viraria 1
+    formato: "{:02d}"
+    normalizacao: "strip() + zfill(2)"
+    referencia: especies-oficial.xlsx
+    cardinalidade: 65
+    validado: "OK — 65 códigos nos dados = 65 no dicionário, ZERO órfãos"
+
+  - pos: 13
+    nome: especie_nome_truncado
+    origem: "Espécie"           # mesmo nome, posição diferente
+    tipo: texto
+    truncado_em: 20
+    uso: "NUNCA agrupar nem exibir por este campo"
+    defeito: "colide entre códigos distintos — ver DF-INSS-002"
+    preservar: true             # fica no Bronze como prova do defeito
+
+# ═════════════════════════════════════════════════════════════
+# CAMPOS DERIVADOS — criados pela fábrica, não vêm na fonte
+# ═════════════════════════════════════════════════════════════
+derivados:
+  - nome: especie_nome
+    camada: silver
+    origem: "join especie_codigo -> contracts/especies-oficial.xlsx"
+    tipo: texto
+    nulo: proibido              # 65/65 têm correspondência; nulo = MODERN_DEFECT
+    descricao: "nome OFICIAL completo, sem truncamento"
+    exemplo: "01 -> 'Pensão por Morte de Trabalhador Rural'"
+
+  - nome: especie_rotulo         # ⭐ o campo que diferencia
+    camada: silver
+    formula: "especie_codigo || ' · ' || especie_nome"
+    tipo: texto
+    descricao: "rótulo inequívoco para exibição e agrupamento"
+    exemplo: "01 · Pensão por Morte de Trabalhador Rural"
+    motivo: |
+      O código sozinho não é legível; o nome sozinho colide (13 grupos,
+      34 de 65 códigos). O par código+nome é único por construção e
+      sobrevive a qualquer truncamento posterior em relatório ou BI.
+    uso: "ESTE é o campo para agrupar e exibir espécie no Gold"
+
+  - nome: especie_nome_confere
+    camada: silver
+    formula: "especie_nome_truncado == substr(especie_nome, 1, 20)"
+    tipo: booleano
+    descricao: "o nome truncado da fonte bate com o oficial?"
+    motivo: |
+      Detecta divergência entre a fonte (SUIBE) e o dicionário oficial.
+      MEDIDO: false em 29 dos 65 códigos — ver DF-INSS-004.
+      NÃO é erro da fábrica. Marca a divergência para auditoria.
+    esperado: "false em 29 códigos conhecidos; qualquer outro é MODERN_DEFECT"
+
+  - nome: especie_nome_fonte
+    camada: silver
+    origem: "especie_nome_truncado, com trim"
+    tipo: texto
+    descricao: "o nome COMO O SUIBE gravou — preservado, nunca descartado"
+    motivo: |
+      A fonte e o dicionário usam nomenclaturas de épocas diferentes.
+      Descartar o nome da fonte apagaria a evidência da divergência.
+
+  - nome: especie_colide
+    camada: silver
+    origem: "especie_codigo ∈ defeitos_fonte[DF-INSS-002].codigos_colidentes"
+    tipo: booleano
+    descricao: "marca as 34 espécies cuja identidade o truncamento destrói"
+    uso: "permite auditar o impacto do defeito sem recalcular"
+
+# ═════════════════════════════════════════════════════════════
+# DEFEITOS CONHECIDOS DA FONTE
+# Preservar. Classificar. NÃO corrigir.
+# ═════════════════════════════════════════════════════════════
+defeitos_fonte:
+  - id: DF-INSS-001
+    campo: "Espécie (pos 12 e 13)"
+    descricao: "Duas colunas com nome idêntico no cabeçalho"
+    efeito: "Leitura por nome descarta o código em silêncio, sem erro"
+    evidencia: "csv.DictReader testado: mantém pos 13, perde pos 12"
+    classificacao: CONFIRMED_SOURCE_DEFECT
+    tratamento: "ler por posição; nomear especie_codigo e especie_nome_truncado"
+
+  - id: DF-INSS-002
+    campo: "todos os campos texto"
+    descricao: "Truncamento em 20 caracteres destrói distinção"
+    impacto_medido:                      # verificado sobre os 65 nomes oficiais
+      nomes_oficiais: 65
+      nomes_apos_truncar: 44
+      grupos_de_colisao: 13
+      codigos_afetados: 34               # 52% das espécies perdem identidade
+    colisoes_especie:
+      "Aposentadoria Invali": ["05", "06", "33", "34", "51", "92"]   # 6 códigos
+      "Aposentadoria Tempo ": ["45", "57", "72", "82"]
+      "Pensão por Morte de ": ["01", "03", "23", "59"]
+      "Abono Permanência em": ["47", "48"]
+      "Amparo Previdenciári": ["11", "12"]
+      "Aposentadoria Especi": ["44", "46"]
+      "Aposentadoria Extran": ["37", "38"]
+      "Aposentadoria por Id": ["08", "41"]
+      "Aposentadoria por In": ["04", "83"]
+      "Aposentadoria por Te": ["42", "43"]
+      "Pensão por Morte Aci": ["02", "93"]
+      "Pensão por Morte Ex-": ["29", "84"]
+      "Renda Mensal Vitalíc": ["30", "40"]
+    colisoes_outros_campos:
+      "Banco Cooperativ": ["748", "756"]        # Sicoob e Sicredi
+      "Conta-Corrente": ["Ccf", "Ccl"]
+    exemplo_gravidade: |
+      'Aposentadoria Invali' funde 6 espécies distintas: invalidez acidentária
+      rural (05), empregador rural (06), aeronauta (33), ex-combatente marítimo
+      (34), extinto plano básico (51) e acidente de trabalho (92).
+      Agrupar por nome soma seis políticas públicas diferentes numa linha só.
+    classificacao: CONFIRMED_SOURCE_DEFECT
+    tratamento: "join pelo CÓDIGO contra especies-oficial.xlsx; nunca pelo nome"
+
+  - id: DF-INSS-004
+    campo: "especie_nome (fonte) × especies-oficial.xlsx (dicionário)"
+    descricao: "Fonte e dicionário oficial usam nomenclaturas diferentes"
+    impacto_medido:
+      codigos_totais: 65
+      codigos_divergentes: 29
+    tipos_de_divergencia:
+      abreviacao: "cód 05: 'Aposent. Invalidez A' × 'Aposentadoria Invalidez Acidentária...'"
+      acentuacao: "cód 10: 'Auxílio Doenca' × 'Auxílio Doença'"
+      nomenclatura_legal: |
+        cód 31: 'Auxílio Doenca Previ' × 'Auxílio por Incapacidade Temporária'
+        cód 32: 'Aposentadoria Invali' × 'Aposentadoria por incapacidade permanente'
+        A EC 103/2019 (Reforma da Previdência) renomeou estas espécies.
+        O SUIBE mantém a nomenclatura anterior; o dicionário usa a atual.
+    classificacao: CONTRACT_AMBIGUITY
+    tratamento: |
+      NÃO escolher em silêncio. O Silver preserva AMBOS:
+        especie_nome        = do dicionário oficial (nomenclatura atual)
+        especie_nome_fonte  = como o SUIBE gravou (nomenclatura do sistema)
+        especie_nome_confere = false nos 22 casos
+      O Gold usa especie_rotulo (código + nome oficial). Quem precisa do
+      nome operacional do INSS tem especie_nome_fonte disponível.
+    escalar_para: "dono do dado — decidir qual nomenclatura é canônica para relatório"
+
+# NOTA: a versão 1 deste contrato declarava um DF-INSS-003 (código 67 órfão).
+# MEDIÇÃO em 2026-01: 65 códigos nos dados, 65 no dicionário, zero órfãos.
+# O defeito era do arquivo de 2026-02. REMOVIDO — contrato não cataloga
+# defeito que não existe nesta competência.
+
+# ═════════════════════════════════════════════════════════════
+# REGRAS DE ACEITAÇÃO — o que reprova
+# ═════════════════════════════════════════════════════════════
+aceitacao:
+  bronze:
+    - "toda linha tem exatamente 14 colunas (medido: 41.572.553/41.572.553)"
+    - "especie_codigo é string de 2 dígitos com zero à esquerda"
+    - "count(bronze) == 41572553                              # tolerância ZERO"
+    - "sum(bronze.vl_liquido) == 78521752562.12               # tolerância ZERO"
+  silver:
+    - "vl_liquido é decimal(scale=2), nunca float"
+    - "count(silver) == count(bronze)                         # tolerância ZERO"
+    - "sum(silver.vl_liquido) == sum(bronze.vl_liquido)       # tolerância ZERO"
+    - "dt_credito em ISO-8601"
+    - "especie_nome vem do dicionário oficial, não do campo truncado"
+    - "toda especie_codigo tem correspondência no dicionário (65/65)"
+    - "especie_nome NUNCA nulo — nulo significa join quebrado = MODERN_DEFECT"
+    - "especie_rotulo é único por especie_codigo (65 rótulos distintos)"
+    - "especie_nome_fonte preservado — a divergência não pode ser apagada"
+    - "count(distinct especie_codigo where not especie_nome_confere) == 29  # DF-INSS-004"
+    - "count(distinct especie_rotulo) == 65 > count(distinct especie_nome_truncado) == 44"
+  gold:
+    - "grão único: (competencia, banco_codigo, uf_residencia) sem duplicata"
+    - "sum(gold.vl_total) == sum(silver.vl_liquido)           # tolerância ZERO"
+    - "count(distinct uf_residencia) == 27"
+    - "banco 998 presente como linha própria, jamais agregado a outro banco"
+
+# ═════════════════════════════════════════════════════════════
+# TRATAMENTO DE REJEIÇÃO
+# ═════════════════════════════════════════════════════════════
+rejeicao:
+  regra: "linha com != 14 colunas é rejeitada"
+  ao_rejeitar:
+    - "ZERO Parquet — nenhum artefato parcial é gravado"
+    - "registrar em evidence/<run>/rejeicoes.json: posição, motivo, bytes crus"
+    - "a execução inteira falha se rejeicoes > 0 — a fonte medida tem 0"
+  proibido: "descartar linha silenciosamente ou 'corrigir' o número de colunas"
+
+# ═════════════════════════════════════════════════════════════
+# SENTINELAS — presentes e válidos, não são erro
+# ═════════════════════════════════════════════════════════════
+sentinelas:
+  "{ñ class}":
+    campos: [clientela, ramo_atividade, despacho]
+    significado: "não classificado na origem"
+    tratamento: "categoria própria no Gold. NUNCA excluir nem imputar."
+  "Nao Informado":
+    campos: [sexo]
+    tratamento: "categoria própria"
+  "998":
+    campo: banco
+    significado: "INSS pagando direto — não é instituição financeira"
+    tratamento: "linha própria no Gold, rotulada 'INSS-DIRETO'; excluída do ranking bancário"
+  "00000":
+    campo: mun_residencia
+    significado: "endereço ausente"
+    tratamento: "categoria própria"
+
+# ═════════════════════════════════════════════════════════════
+# RESTRIÇÕES
+# ═════════════════════════════════════════════════════════════
+restricoes:
+  chave_primaria: nenhuma
+  deduplicacao: proibida
+  motivo: "dados anonimizados (LGPD); linhas idênticas são registros distintos"
+  validade_dos_dominios: "medidos em 2026-01. Revalidar a cada competência."

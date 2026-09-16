@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "deny": [
+      "Write(_raw/**)",
+      "Edit(_raw/**)",
+      "Write(contracts/**)",
+      "Edit(contracts/**)",
+      "Write(validation/**)",
+      "Edit(validation/**)",
+      "Bash(sed -i *)",
+      "Bash(tee _raw/*)",
+      "Bash(tee contracts/*)",
+      "Bash(tee validation/*)",
+      "Bash(rm -rf _raw*)"
+    ]
+  }
+}

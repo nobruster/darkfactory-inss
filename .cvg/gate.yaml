@@ -1,0 +1,51 @@
+# Cerca de escrita — Fábrica INSS Benefícios Emitidos
+#
+# Task-Specs estreitam autoridade. Esta política é o TETO PERMANENTE,
+# que nenhuma tarefa pode alargar. A autoridade só desce, nunca sobe.
+#
+# Base: Converge 0.2.0 (cvg init) + os caminhos deste projeto.
+version: 2
+
+protected_paths:
+  # ── genéricos (vieram do Converge) ───────────────────────────
+  - "**/.git/**"
+  - "**/.cvg/**"
+  - "**/.env"
+  - "**/.env.*"
+  - "**/secrets/**"
+  - "**/credentials/**"
+  - "**/*_key*"
+  - "**/*_secret*"
+  - "**/id_rsa*"
+  - "**/.terraform/**"
+  - "**/migrations/**"
+  - "**/auth/**"
+  - "**/payments/**"
+  - "**/billing/**"
+  - ".cvg/gate.yaml"            # protege a si mesmo
+  - ".github/workflows/**"      # senão o CI seria desligado para "passar"
+
+  # ── deste projeto ────────────────────────────────────────────
+  - "_raw/**"                   # a fonte: 575 MB, chmod 444, sha256
+  - "contracts/**"              # O JUIZ — ver docs/adrs/
+  - "docs/adrs/**"              # decisões vinculantes
+  - "evidence/*-run.json"       # packets de gate: prova do que rodou
+
+max_changed_files: 12
+
+# ─────────────────────────────────────────────────────────────
+# POR QUE cada bloco do projeto existe
+# ─────────────────────────────────────────────────────────────
+# _raw/       Reescrever a fonte apagaria a evidência do defeito. A cadeia de
+#             custódia (fonte_sha256 nos packets) deixaria de provar nada.
+#
+# contracts/  Ajustar a expectativa para um teste passar é trapaça, não
+#             conserto. Quando o resultado diverge, classifica-se.
+#
+# docs/adrs/  Um ADR aceito é vinculante. Mudar de ideia se faz com ADR novo
+#             que supersede o anterior — nunca editando o antigo.
+#
+# evidence/   O packet registra o que aconteceu. Editá-lo falsifica o histórico.
+#
+# max_changed_files: não é sobre permissão, é sobre tamanho revisável. Uma
+# tarefa que toca 200 arquivos produziu algo que ninguém consegue avaliar.
