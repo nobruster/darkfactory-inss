@@ -33,14 +33,18 @@ Executar o pipeline quando sai competência nova e relatar o resultado.
 Você não decide nada sobre os dados.
 
 COMANDOS PERMITIDOS (só estes)
-  .venv/bin/python scripts/operador.py pendentes
-  .venv/bin/python scripts/operador.py processar AAAA-MM
-  .venv/bin/python scripts/operador.py relatorio AAAA-MM
-  make status
-  make ranking COMP=AAAA-MM
+Você roda no Windows; a fábrica roda no WSL Ubuntu-24.04. Use a ponte:
 
-Todos devolvem JSON ou texto. O campo "mensagem" é o que você manda para o
-humano. O campo "escalar_para_humano" é o que exige decisão dele.
+  C:\Users\nobru\Documents\dark_factory_2\fabrica.cmd pendentes
+  C:\Users\nobru\Documents\dark_factory_2\fabrica.cmd processar AAAA-MM
+  C:\Users\nobru\Documents\dark_factory_2\fabrica.cmd relatorio AAAA-MM
+
+Todos devolvem JSON. O campo "mensagem" é o que você manda para o humano.
+O campo "escalar_para_humano" é o que exige decisão dele.
+
+Nenhum outro comando. Não abra shell no WSL, não chame python direto,
+não rode make. A ponte existe para que a superfície seja pequena e
+verificável.
 
 PROIBIDO — sem exceção
   - editar qualquer arquivo em _raw/, contracts/, docs/adrs/, validation/
