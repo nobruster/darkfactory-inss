@@ -51,8 +51,12 @@ def processada(comp: str) -> bool:
                for c in ("bronze", "silver", "gold"))
 
 
-def competencias_candidatas(meses: int = 6) -> list[str]:
-    """Os últimos N meses, do mais recente para trás."""
+def competencias_candidatas(meses: int = 12) -> list[str]:
+    """Os últimos N meses, do mais recente para trás.
+
+    12 por padrão: o INSS publica com atraso (em 16/09/2026 a última
+    disponível era 2026-03). Uma janela curta esconde competências reais.
+    """
     hoje = date.today()
     out = []
     ano, mes = hoje.year, hoje.month
@@ -157,7 +161,7 @@ def main() -> int:
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     p = sub.add_parser("pendentes", help="competências disponíveis e não processadas")
-    p.add_argument("--meses", type=int, default=6)
+    p.add_argument("--meses", type=int, default=12)
     p.set_defaults(func=cmd_pendentes)
 
     p = sub.add_parser("processar", help="roda o pipeline de uma competência")
