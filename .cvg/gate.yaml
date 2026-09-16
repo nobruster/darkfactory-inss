@@ -29,7 +29,10 @@ protected_paths:
   - "_raw/**"                   # a fonte: 575 MB, chmod 444, sha256
   - "contracts/**"              # O JUIZ — ver docs/adrs/
   - "docs/adrs/**"              # decisões vinculantes
-  - "evidence/*-run.json"       # packets de gate: prova do que rodou
+  # ⚠ Até 16/09/2026 este padrão era "evidence/*-run.json" e casava com ZERO
+  # arquivo: os packets reais chamam-se bronze-202601.json. A cerca existia
+  # no papel e não protegia nada. Auditoria, objeção #11.
+  - "evidence/**"               # packets de gate: prova do que rodou
 
 max_changed_files: 12
 

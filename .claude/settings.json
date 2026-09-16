@@ -1,17 +1,35 @@
 {
+  "_comentario": [
+    "Esta deny-list espelha protected_paths de .cvg/gate.yaml.",
+    "Duas cercas, uma doutrina: se divergirem, a divergência é defeito.",
+    "Até 16/09/2026 elas discordavam — aqui faltavam docs/adrs/ e evidence/,",
+    "e sobrava validation/, que não existe no repositório.",
+    "Auditoria de 16/09/2026, objeção #10.",
+    "",
+    "scripts/verificar_cercas.py confere que as duas continuam de acordo."
+  ],
   "permissions": {
     "deny": [
       "Write(_raw/**)",
       "Edit(_raw/**)",
       "Write(contracts/**)",
       "Edit(contracts/**)",
-      "Write(validation/**)",
-      "Edit(validation/**)",
+      "Write(docs/adrs/**)",
+      "Edit(docs/adrs/**)",
+      "Write(evidence/**)",
+      "Edit(evidence/**)",
+      "Write(.cvg/gate.yaml)",
+      "Edit(.cvg/gate.yaml)",
+      "Write(.github/workflows/**)",
+      "Edit(.github/workflows/**)",
       "Bash(sed -i *)",
       "Bash(tee _raw/*)",
       "Bash(tee contracts/*)",
-      "Bash(tee validation/*)",
-      "Bash(rm -rf _raw*)"
+      "Bash(tee docs/adrs/*)",
+      "Bash(tee evidence/*)",
+      "Bash(rm -rf _raw*)",
+      "Bash(chmod *contracts/*)",
+      "Bash(chmod *_raw/*)"
     ]
   }
 }

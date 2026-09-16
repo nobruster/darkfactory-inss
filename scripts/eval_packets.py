@@ -27,10 +27,35 @@ def main() -> int:
             erros.append(f"{camada}: packet ausente ({f.name})")
             continue
         d = json.loads(f.read_text(encoding="utf-8"))
+        # ACEITO_SEM_ANCORA é publicação legítima de competência ainda não
+        # ancorada — mas não passa nesta eval: eval-1 exige a linha completa.
         if d.get("status") != "ACEITO":
             erros.append(f"{camada}: status={d.get('status')} falhas={d.get('falhas')}")
         if d.get("publicado") is not True:
             erros.append(f"{camada}: não publicado")
+        # ⚠ Um packet ACEITO com gate de ÂNCORA false mente por omissão: quem
+        # lê o status não vê que o gate nem rodou. Foi assim que 82 milhões de
+        # linhas foram publicadas sem conferência contra a fonte.
+        # Auditoria de 16/09/2026, objeção #28.
+        #
+        # Nem todo `false` é gate desligado. `numeros_do_contrato_conferidos`
+        # e `soma_confere_contrato` significam "esta não é a competência que o
+        # contrato declara" — é informação de escopo, e a âncora por
+        # competência já cobre o total. Só os gates abaixo são inegociáveis.
+        gates = d.get("gates") or {}
+        ANCORA = {
+            "count_confere", "soma_confere",            # bronze
+            "count_confere_ancora", "soma_confere_ancora",   # silver
+            "qtd_confere_ancora",                        # gold
+            "count_confere_bronze", "soma_confere_bronze",
+            "soma_confere_silver", "qtd_confere_silver",
+            "rejeicoes_zero", "grao_unico",
+        }
+        desligados = [k for k in ANCORA if gates.get(k) is False]
+        if desligados:
+            erros.append(f"{camada}: ACEITO com gate de âncora desligado -> "
+                         f"{sorted(desligados)}. "
+                         f"Gate que não rodou não é gate que passou.")
 
     if erros:
         print("eval-1 FALHOU")

@@ -95,20 +95,43 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: pasta congelada só muda com ADR
+      # ⚠ Até 16/09/2026 este job dizia cobrir docs/adrs/ e não cobria: o diff
+      # olhava só contracts/ e _raw/. Um ADR aceito podia ser REESCRITO sem que
+      # nada acusasse — e reescrever um ADR é apagar a decisão, não mudá-la.
+      # Auditoria de 16/09/2026, objeção #9.
+      - name: ADR aceito não se edita — supersede-se
         run: |
-          # num PR, mudança em contracts/ ou docs/adrs/ exige ADR novo
           if [ "${{ github.event_name }}" != "pull_request" ]; then
             echo "não é PR — pulando"; exit 0
           fi
           BASE="${{ github.event.pull_request.base.sha }}"
-          MUDOU=$(git diff --name-only "$BASE" HEAD -- contracts/ _raw/ | head -20)
+          # M=modificado, D=apagado, R=renomeado. A=adicionado é permitido:
+          # ADR novo é exatamente como se muda de ideia.
+          TOCADO=$(git diff --name-only --diff-filter=MDR "$BASE" HEAD -- docs/adrs/)
+          if [ -n "$TOCADO" ]; then
+            echo "BLOQUEIO: ADR existente alterado ou removido:"
+            echo "$TOCADO" | sed 's/^/  /'
+            echo ""
+            echo "Um ADR aceito é vinculante. Mudar de ideia se faz com um ADR"
+            echo "NOVO que supersede o anterior — nunca editando o antigo."
+            echo "Editar apaga o registro de que a decisão anterior existiu."
+            exit 1
+          fi
+          echo "docs/adrs/: nenhum ADR existente foi tocado"
+
+      - name: pasta congelada só muda com ADR que a nomeia
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "não é PR — pulando"; exit 0
+          fi
+          BASE="${{ github.event.pull_request.base.sha }}"
+          MUDOU=$(git diff --name-only "$BASE" HEAD -- contracts/ _raw/)
           if [ -z "$MUDOU" ]; then
             echo "nada mudou em pasta congelada"; exit 0
           fi
           echo "pasta congelada alterada:"
           echo "$MUDOU" | sed 's/^/  /'
-          ADR_NOVO=$(git diff --name-only --diff-filter=A "$BASE" HEAD -- docs/adrs/ | head -5)
+          ADR_NOVO=$(git diff --name-only --diff-filter=A "$BASE" HEAD -- docs/adrs/)
           if [ -z "$ADR_NOVO" ]; then
             echo ""
             echo "BLOQUEIO: mudança em pasta congelada sem ADR novo."
@@ -116,5 +139,28 @@ jobs:
             echo "Se a mudança é deliberada, escreva o ADR que a justifica."
             exit 1
           fi
+          # ⚠ Não basta existir um ADR novo: ele tem de NOMEAR o arquivo que
+          # mudou. Antes desta correção, um ADR sobre qualquer assunto
+          # destravava qualquer edição do contrato. Auditoria, objeção #9.
+          FALTOU=""
+          for arq in $MUDOU; do
+            if ! grep -qF "$(basename "$arq")" $ADR_NOVO; then
+              FALTOU="$FALTOU $arq"
+            fi
+          done
+          if [ -n "$FALTOU" ]; then
+            echo ""
+            echo "BLOQUEIO: há ADR novo, mas nenhum menciona:"
+            for a in $FALTOU; do echo "  $a"; done
+            echo ""
+            echo "O ADR precisa nomear o arquivo congelado que justifica mudar."
+            echo "Um ADR sobre outro assunto não é autorização para esta edição."
+            exit 1
+          fi
           echo "ADR que justifica:"
           echo "$ADR_NOVO" | sed 's/^/  /'
+
+      - name: cercas de escrita concordam entre si
+        run: |
+          pip install -q pyyaml
+          python scripts/verificar_cercas.py
