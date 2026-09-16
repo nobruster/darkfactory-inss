@@ -1,0 +1,47 @@
+[project]
+name = "darkfactory-inss"
+version = "0.1.0"
+description = "Fábrica de dados: concentração bancária em benefícios do INSS, por UF"
+requires-python = ">=3.12"
+dependencies = [
+    "duckdb>=1.1",
+    "pyarrow>=25,<26",   # 25.x codifica o Parquet do landing — outra versão muda os bytes
+    "pyyaml>=6",
+    "openpyxl>=3.1",     # lê os dicionários oficiais do INSS (.xlsx)
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.9",
+    "pytest>=8",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle
+    "F",    # pyflakes
+    "I",    # isort
+    "UP",   # pyupgrade
+    "B",    # bugbear
+    "SIM",  # simplify
+]
+ignore = [
+    "E501",  # line-length já é checado pelo formatter
+]
+
+[tool.ruff.lint.per-file-ignores]
+# scripts de perfilamento são exploratórios por natureza
+"scripts/perfil_cobertura.py" = ["T201"]
+"scripts/totais_controle.py" = ["T201"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+markers = [
+    "integracao: exige lakehouse construído (pule com -m 'not integracao')",
+]

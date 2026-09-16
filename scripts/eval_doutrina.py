@@ -70,7 +70,7 @@ def main() -> int:
         capture_output=True, text=True,
     ).stdout.strip()
     if sujo:
-        erros.append(f"B-7: pasta congelada alterada:\n      "
+        erros.append("B-7: pasta congelada alterada:\n      "
                      + sujo.replace("\n", "\n      "))
 
     if erros:

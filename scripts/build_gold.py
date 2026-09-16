@@ -19,8 +19,7 @@ from __future__ import annotations
 import json
 import sys
 import time
-from datetime import datetime, timezone
-from decimal import Decimal
+from datetime import UTC, datetime
 from pathlib import Path
 
 import duckdb
@@ -148,7 +147,7 @@ def main() -> int:
         "status": "ACEITO",
         "publicado": True,
         "competencia": comp,
-        "gerado_em": datetime.now(timezone.utc).isoformat(),
+        "gerado_em": datetime.now(UTC).isoformat(),
         "tabela": "gold_concentracao_bancaria",
         "grao": ["competencia", "banco_codigo", "uf_residencia"],
         "linhas": linhas,

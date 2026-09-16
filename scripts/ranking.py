@@ -70,7 +70,7 @@ def main() -> int:
     ).fetchone()
     if direto and direto[1]:
         pct = 100 * float(direto[1]) / float(total)
-        print(f"\n  fora do ranking (ADR 0005):")
+        print("\n  fora do ranking (ADR 0005):")
         print(f"      998  INSS pagando direto    "
               f"R$ {direto[1]:>17,.2f}  {pct:>5.2f}%  ·  {direto[0]:,} benefícios")
     con.close()

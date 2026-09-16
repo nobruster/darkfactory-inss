@@ -1,6 +1,10 @@
 """Totais de controle da fonte. Sao a ancora de integridade — o 173.45 desta fabrica."""
-import zipfile, io, json, time
+import io
+import json
+import time
+import zipfile
 from decimal import Decimal
+
 BASE="/home/nobru/darkfactory-inss"
 z=zipfile.ZipFile(f"{BASE}/_raw/fonte.zip"); n=z.namelist()[0]
 tot=0; soma=Decimal("0"); ruins=0; t0=time.time()

@@ -17,7 +17,7 @@ import json
 import shutil
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import duckdb
@@ -174,7 +174,7 @@ def main() -> int:
         "status": "ACEITO",
         "publicado": True,
         "competencia": comp,
-        "gerado_em": datetime.now(timezone.utc).isoformat(),
+        "gerado_em": datetime.now(UTC).isoformat(),
         "linhas": n_silver,
         "sum_vl_liquido": str(soma_silver),
         "gates": {

@@ -19,7 +19,7 @@ import shutil
 import sys
 import time
 import zipfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 
@@ -147,7 +147,7 @@ def main() -> int:
             falhas.append(f"soma {soma} != contrato {ctl['sum_vl_liquido']}")
     else:
         print(f"\n  competência {comp} != contrato {contrato['competencia']}:")
-        print(f"  totais de controle NÃO comparados — medidos aqui:")
+        print("  totais de controle NÃO comparados — medidos aqui:")
         print(f"    count = {total:,}")
         print(f"    soma  = {soma}")
 
@@ -183,7 +183,7 @@ def main() -> int:
     sha_fonte = (BASE / "_raw" / f"fonte-{aaaamm}.zip.sha256")
     manifesto = {
         "competencia": comp,
-        "gerado_em": datetime.now(timezone.utc).isoformat(),
+        "gerado_em": datetime.now(UTC).isoformat(),
         "fonte_sha256": (sha_fonte.read_text(encoding="utf-8").split()[0]
                          if sha_fonte.exists() else None),
         "parquet_sha256": sha,

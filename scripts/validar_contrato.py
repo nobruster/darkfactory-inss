@@ -1,5 +1,11 @@
 """Testa o contrato contra os dados reais. O contrato erra? A fonte erra? Dizemos qual."""
-import zipfile, io, yaml, json, collections, sys
+import collections
+import io
+import json
+import zipfile
+
+import yaml
+
 BASE="/home/nobru/darkfactory-inss"
 c=yaml.safe_load(open(f"{BASE}/contracts/layout.yaml"))
 esp_oficial=json.load(open(f"{BASE}/contracts/_especies.json"))

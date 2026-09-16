@@ -25,7 +25,7 @@ import sys
 import time
 import urllib.request
 import zipfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 BASE = Path(__file__).resolve().parents[1]
@@ -159,7 +159,7 @@ def main() -> int:
         "status": "ACEITO",
         "publicado": True,
         "competencia": comp,
-        "gerado_em": datetime.now(timezone.utc).isoformat(),
+        "gerado_em": datetime.now(UTC).isoformat(),
         "url": url,
         "zip_bytes": recebido,
         "zip_sha256": sha,

@@ -1,4 +1,9 @@
-import zipfile, io, collections, json, sys, time
+import collections
+import io
+import json
+import time
+import zipfile
+
 BASE="/home/nobru/darkfactory-inss"
 z=zipfile.ZipFile(f"{BASE}/_raw/fonte.zip"); n=z.namelist()[0]
 ufs=collections.Counter(); bancos=collections.Counter(); esp=collections.Counter()
