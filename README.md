@@ -36,14 +36,44 @@ Corrigir em silêncio destrói a prova de que a origem tem um problema.
 ## Como rodar
 
 ```bash
-make init      # cria o venv e instala dependências
-make fetch     # baixa a fonte (575 MB) e congela: chmod 444 + sha256
-make all       # bronze -> silver -> gold
-make status    # estado dos packets de evidência
-make ranking   # top 10 bancos
+make init                      # venv + dependências
+make all                       # fetch -> bronze -> silver -> gold
+make status                    # o que rodou, em que competência
+make ranking                   # top 10 bancos
 ```
 
-Requisitos: Python 3.12+, ~2 GB de disco, ~5 min de execução.
+Outra competência é só trocar `COMP`:
+
+```bash
+make all COMP=2026-02
+make ranking COMP=2026-02 --uf "São Paulo"
+```
+
+**Cada etapa é um script Python** — o Makefile só encadeia. O download nunca
+rebaixa o que já está no disco:
+
+| Comando | Comportamento |
+|---|---|
+| `make fetch` | baixa **só se não existir**; senão confere o sha256 e sai |
+| `make check` | pergunta ao servidor se a fonte mudou, **sem baixar** |
+| `make refetch` | rebaixa deliberadamente (reprocessamento) |
+
+Requisitos: Python 3.12+, ~2 GB de disco por competência, ~4 min de execução.
+
+## Competências processadas
+
+| | jan/2026 | fev/2026 |
+|---|---|---|
+| Linhas | 41.572.553 | 41.522.152 |
+| Valor | R$ 78.521.752.562,12 | R$ 78.441.374.955,39 |
+| TOP 4 | 75,82% | 75,84% |
+| Órfãos de espécie | nenhum | **código 67** |
+
+A concentração é **estrutural** — varia em décimos entre os meses.
+
+⚠️ Fevereiro trouxe o código de espécie **67** (`Pecúlio Obrigatório`), ausente do
+dicionário oficial. A fábrica classificou como `CONTRACT_AMBIGUITY`, marcou as 3
+linhas com `especie_orfa` e **não inventou** a descrição. Ver `DF-INSS-003`.
 
 ---
 

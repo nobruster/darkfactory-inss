@@ -1,0 +1,29 @@
+{
+  "status": "ACEITO",
+  "publicado": true,
+  "competencia": "2026-02",
+  "gerado_em": "2026-09-16T02:11:30.481268+00:00",
+  "linhas": 41522152,
+  "sum_vl_liquido": "78441374955.39",
+  "gates": {
+    "count_confere_bronze": true,
+    "soma_confere_bronze": true,
+    "rotulos_distintos": 65,
+    "dt_credito_sem_nulo": true,
+    "numeros_do_contrato_conferidos": false
+  },
+  "DF-INSS-003": {
+    "codigos_orfaos": [
+      "67"
+    ],
+    "linhas_afetadas": 3,
+    "classificacao": "CONTRACT_AMBIGUITY",
+    "nota": "código presente na fonte e ausente do dicionário oficial; especie_nome fica nulo, especie_nome_fonte preserva a origem, especie_orfa marca a linha. NÃO se inventa descrição."
+  },
+  "DF-INSS-004": {
+    "codigos_divergentes": 29,
+    "classificacao": "CONTRACT_AMBIGUITY",
+    "nota": "fonte e dicionário usam nomenclaturas diferentes; ambos preservados"
+  },
+  "segundos": 26
+}

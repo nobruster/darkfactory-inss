@@ -51,19 +51,32 @@ def sha256_de(caminho: Path) -> str:
 
 
 def main() -> int:
+    import argparse
+    ap = argparse.ArgumentParser(description="fonte -> landing Parquet")
+    ap.add_argument("--competencia", help="AAAA-MM; padrão: a do contrato")
+    args = ap.parse_args()
+
     contrato = carregar_contrato()
+    comp = args.competencia or contrato["competencia"]
+    aaaamm = comp.replace("-", "")
+    # os totais de controle valem só para a competência que o contrato declara
+    confere_controle = comp == contrato["competencia"]
     ctl = contrato["controle"]
     ncols = contrato["fonte"]["colunas"]
     nomes = [c["nome"] for c in contrato["colunas"]]
     schema = schema_de(contrato)
 
-    destino = BASE / "landing" / contrato["competencia"]
-    parcial = BASE / "landing" / f".{contrato['competencia']}.parcial"
+    destino = BASE / "landing" / comp
+    parcial = BASE / "landing" / f".{comp}.parcial"
     if parcial.exists():
         shutil.rmtree(parcial)
     parcial.mkdir(parents=True)
 
-    fonte = BASE / "_raw" / "fonte.zip"
+    fonte = BASE / "_raw" / f"fonte-{aaaamm}.zip"
+    if not fonte.exists():
+        print(f"sem fonte para {comp}. rode antes:")
+        print(f"  python3 ingestion/fetch_fonte.py --competencia {comp}")
+        return 1
     z = zipfile.ZipFile(fonte)
     membro = z.namelist()[0]
 
@@ -121,13 +134,22 @@ def main() -> int:
     segundos = round(time.time() - t0)
 
     # ── gates do contrato ────────────────────────────────────────────────
+    # A estrutura (14 colunas, zero rejeição) vale para TODA competência.
+    # Os totais de controle valem só para a que o contrato declara — uma
+    # competência nova tem outros números, e isso não é defeito.
     falhas: list[str] = []
     if rejeicoes:
         falhas.append(f"rejeicoes={len(rejeicoes)} (contrato exige 0)")
-    if total != ctl["count_linhas"]:
-        falhas.append(f"count {total} != contrato {ctl['count_linhas']}")
-    if str(soma) != ctl["sum_vl_liquido"]:
-        falhas.append(f"soma {soma} != contrato {ctl['sum_vl_liquido']}")
+    if confere_controle:
+        if total != ctl["count_linhas"]:
+            falhas.append(f"count {total} != contrato {ctl['count_linhas']}")
+        if str(soma) != ctl["sum_vl_liquido"]:
+            falhas.append(f"soma {soma} != contrato {ctl['sum_vl_liquido']}")
+    else:
+        print(f"\n  competência {comp} != contrato {contrato['competencia']}:")
+        print(f"  totais de controle NÃO comparados — medidos aqui:")
+        print(f"    count = {total:,}")
+        print(f"    soma  = {soma}")
 
     if falhas:
         # ZERO Parquet: nada é publicado quando um gate reprova
@@ -139,7 +161,7 @@ def main() -> int:
             "rejeicoes": rejeicoes[:100],
             "publicado": False,
         }
-        (BASE / "evidence" / "bronze-run.json").write_text(
+        (BASE / "evidence" / f"bronze-{aaaamm}.json").write_text(
             json.dumps(pacote, indent=2, ensure_ascii=False), encoding="utf-8"
         )
         print("\nBRONZE REJEITADO — nenhum Parquet publicado")
@@ -158,10 +180,12 @@ def main() -> int:
         f"{sha}  bronze.parquet\n", encoding="utf-8"
     )
 
+    sha_fonte = (BASE / "_raw" / f"fonte-{aaaamm}.zip.sha256")
     manifesto = {
-        "competencia": contrato["competencia"],
+        "competencia": comp,
         "gerado_em": datetime.now(timezone.utc).isoformat(),
-        "fonte_sha256": contrato["fonte"]["zip_sha256"],
+        "fonte_sha256": (sha_fonte.read_text(encoding="utf-8").split()[0]
+                         if sha_fonte.exists() else None),
         "parquet_sha256": sha,
         "parquet_bytes": arquivo.stat().st_size,
         "linhas": total,
@@ -180,17 +204,17 @@ def main() -> int:
         "publicado": True,
         "gates": {
             "rejeicoes_zero": True,
-            "count_confere": True,
-            "soma_confere": True,
+            "count_confere": confere_controle,
+            "soma_confere": confere_controle,
         },
         **manifesto,
     }
-    (BASE / "evidence" / "bronze-run.json").write_text(
+    (BASE / "evidence" / f"bronze-{aaaamm}.json").write_text(
         json.dumps(pacote, indent=2, ensure_ascii=False), encoding="utf-8"
     )
 
     print(f"\nBRONZE ACEITO · {total:,} linhas · {segundos}s")
-    print(f"  soma  : {soma}  (confere com o contrato)")
+    print(f"  soma  : {soma}  {"(confere com o contrato)" if confere_controle else "(competencia nova)"}")
     print(f"  bytes : {arquivo.stat().st_size:,}")
     print(f"  sha256: {sha[:32]}…")
     return 0

@@ -303,10 +303,28 @@ defeitos_fonte:
       nome operacional do INSS tem especie_nome_fonte disponível.
     escalar_para: "dono do dado — decidir qual nomenclatura é canônica para relatório"
 
-# NOTA: a versão 1 deste contrato declarava um DF-INSS-003 (código 67 órfão).
-# MEDIÇÃO em 2026-01: 65 códigos nos dados, 65 no dicionário, zero órfãos.
-# O defeito era do arquivo de 2026-02. REMOVIDO — contrato não cataloga
-# defeito que não existe nesta competência.
+  - id: DF-INSS-003
+    campo: especie_codigo
+    descricao: "Código presente na fonte e ausente do dicionário oficial"
+    ocorrencias_medidas:
+      "2026-01": {codigos_fonte: 65, no_dicionario: 65, orfaos: []}
+      "2026-02": {codigos_fonte: 66, no_dicionario: 65, orfaos: ["67"]}
+    detalhe_2026_02: |
+      Código 67, nome na fonte 'Pecúlio Obrigatório', 3 linhas.
+      O dicionário oficial (PDA 2025-2027) não o lista.
+    classificacao: CONTRACT_AMBIGUITY
+    tratamento: |
+      NÃO é join quebrado — o join funcionou e não achou.
+      NÃO inventar descrição a partir do nome truncado da fonte.
+      especie_nome fica nulo; especie_nome_fonte preserva o que a fonte trouxe;
+      especie_orfa = true marca a linha.
+      A execução NÃO falha: órfão é achado, não defeito da fábrica.
+    escalar_para: "INSS — dicionário oficial incompleto para esta competência"
+    historico: |
+      A versão 1 deste contrato declarava este defeito com base no arquivo de
+      2026-02, antes de medir 2026-01. Foi removido na v2 por não existir em
+      janeiro. Reinstaurado ao processar fevereiro, agora com medição por
+      competência — que é como deveria ter sido desde o início.
 
 # ═════════════════════════════════════════════════════════════
 # REGRAS DE ACEITAÇÃO — o que reprova

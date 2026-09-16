@@ -31,7 +31,11 @@ BASE = Path("/home/nobru/darkfactory-inss")
 
 def main() -> int:
     contrato = yaml.safe_load((BASE / "contracts" / "layout.yaml").read_text(encoding="utf-8"))
-    comp = contrato["competencia"]
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--competencia")
+    args = ap.parse_args()
+    comp = args.competencia or contrato["competencia"]
     ctl = contrato["controle"]
 
     db = BASE / "lakehouse" / comp / "inss.duckdb"
@@ -100,15 +104,23 @@ def main() -> int:
     inss_ranqueado = q("""select count(*) from gold_concentracao_bancaria
                           where e_inss_direto and posicao_na_uf is not null""")
 
+    # A coerência com a camada anterior vale SEMPRE. Os totais absolutos do
+    # contrato valem só para a competência que ele declara.
+    confere_contrato = comp == contrato["competencia"]
+
     falhas = []
     if soma_gold != soma_silver:
         falhas.append(f"soma gold {soma_gold} != silver {soma_silver}")
-    if str(soma_gold) != ctl["sum_vl_liquido"]:
-        falhas.append(f"soma gold {soma_gold} != contrato {ctl['sum_vl_liquido']}")
     if qtd_gold != qtd_silver:
         falhas.append(f"qtd gold {qtd_gold} != silver {qtd_silver}")
-    if ufs != ctl["ufs_distintas"]:
-        falhas.append(f"UFs {ufs} != contrato {ctl['ufs_distintas']}")
+    if confere_contrato:
+        if str(soma_gold) != ctl["sum_vl_liquido"]:
+            falhas.append(f"soma gold {soma_gold} != contrato {ctl['sum_vl_liquido']}")
+        if ufs != ctl["ufs_distintas"]:
+            falhas.append(f"UFs {ufs} != contrato {ctl['ufs_distintas']}")
+    elif ufs < 27:
+        # cobertura nacional é estrutural, não depende da competência
+        falhas.append(f"UFs {ufs} < 27 — cobertura nacional incompleta")
     if dup:
         falhas.append(f"grão duplicado em {dup} combinações")
     if not inss_direto:
@@ -123,7 +135,7 @@ def main() -> int:
         con.close()
         pacote = {"status": "REJEITADO", "classificacao": "MODERN_DEFECT",
                   "falhas": falhas, "publicado": False}
-        (BASE / "evidence" / "gold-run.json").write_text(
+        (BASE / "evidence" / f"gold-{comp.replace(chr(45), "")}.json").write_text(
             json.dumps(pacote, indent=2, ensure_ascii=False), encoding="utf-8")
         print("\nGOLD REJEITADO — tabela removida, nada publicado")
         for f in falhas:
@@ -144,7 +156,7 @@ def main() -> int:
         "sum_vl_total": str(soma_gold),
         "gates": {
             "soma_confere_silver": True,
-            "soma_confere_contrato": True,
+            "soma_confere_contrato": confere_contrato,
             "qtd_confere_silver": True,
             "ufs_completas": ufs,
             "grao_unico": True,
@@ -153,7 +165,7 @@ def main() -> int:
         },
         "segundos": segundos,
     }
-    (BASE / "evidence" / "gold-run.json").write_text(
+    (BASE / "evidence" / f"gold-{comp.replace(chr(45), "")}.json").write_text(
         json.dumps(pacote, indent=2, ensure_ascii=False), encoding="utf-8")
 
     print(f"\nGOLD ACEITO · {linhas:,} linhas de agregado · {segundos}s")

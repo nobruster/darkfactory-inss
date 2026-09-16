@@ -1,0 +1,35 @@
+{
+  "status": "ACEITO",
+  "publicado": true,
+  "gates": {
+    "rejeicoes_zero": true,
+    "count_confere": false,
+    "soma_confere": false
+  },
+  "competencia": "2026-02",
+  "gerado_em": "2026-09-16T02:07:51.299820+00:00",
+  "fonte_sha256": "f0017391f44fea72324af570bf7ae61ee22f43796008b306e28901fd6f4e8cd3",
+  "parquet_sha256": "a372077cfc9939f571700ea6f8f4ef9fefe7009a3f5fa942b0e7f520929d219c",
+  "parquet_bytes": 303723368,
+  "linhas": 41522152,
+  "sum_vl_liquido": "78441374955.39",
+  "colunas": [
+    "despacho",
+    "sexo",
+    "clientela",
+    "tipo_beneficio",
+    "uf_residencia",
+    "meio_pagamento",
+    "banco",
+    "mun_pagto",
+    "mun_residencia",
+    "vl_liquido",
+    "ramo_atividade",
+    "dt_credito",
+    "especie_codigo",
+    "especie_nome_truncado"
+  ],
+  "blocos": 21,
+  "segundos": 119,
+  "contrato_versao": 2
+}

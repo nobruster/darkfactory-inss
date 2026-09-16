@@ -28,7 +28,11 @@ BASE = Path("/home/nobru/darkfactory-inss")
 
 def main() -> int:
     contrato = yaml.safe_load((BASE / "contracts" / "layout.yaml").read_text(encoding="utf-8"))
-    comp = contrato["competencia"]
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--competencia")
+    args = ap.parse_args()
+    comp = args.competencia or contrato["competencia"]
     especies = json.loads((BASE / "contracts" / "_especies.json").read_text(encoding="utf-8"))
 
     bronze = BASE / "landing" / comp / "bronze.parquet"
@@ -86,6 +90,7 @@ def main() -> int:
             (trim(b.especie_nome_truncado) = substr(d.nome, 1, 20))
                                                                as especie_nome_confere,
             lpad(trim(b.especie_codigo), 2, '0') in ({lista})  as especie_colide,
+            (d.nome is null)                                   as especie_orfa,
 
             '{comp}'                                           as competencia,
             b._linha_origem
@@ -111,12 +116,20 @@ def main() -> int:
         falhas.append(f"count silver {n_silver} != bronze {n_bronze}")
     if soma_silver != soma_bronze:
         falhas.append(f"soma silver {soma_silver} != bronze {soma_bronze}")
-    if nulos:
-        falhas.append(f"especie_nome nulo em {nulos} linhas — join quebrado")
-    if rotulos != 65:
-        falhas.append(f"especie_rotulo distintos {rotulos} != 65")
-    if divergentes != 29:
-        falhas.append(f"divergentes {divergentes} != 29 (DF-INSS-004)")
+    # DF-INSS-003: código na fonte, ausente do dicionário oficial.
+    # NÃO é join quebrado — o join funcionou e não achou. É CONTRACT_AMBIGUITY:
+    # classifica-se e escala, sem inventar descrição e sem falhar a execução.
+    orfaos = [r[0] for r in con.execute(
+        "select distinct especie_codigo from silver where especie_orfa order by 1"
+    ).fetchall()] if nulos else []
+    # Os números de espécie do contrato valem para a competência que ele declara.
+    # Em outra competência viram observação medida, não gate — a fonte muda.
+    confere_contrato = comp == contrato["competencia"]
+    if confere_contrato:
+        if rotulos != 65:
+            falhas.append(f"especie_rotulo distintos {rotulos} != 65")
+        if divergentes != 29:
+            falhas.append(f"divergentes {divergentes} != 29 (DF-INSS-004)")
     if datas_nulas:
         falhas.append(f"dt_credito nula em {datas_nulas} linhas")
 
@@ -127,7 +140,7 @@ def main() -> int:
         shutil.rmtree(parcial, ignore_errors=True)
         pacote = {"status": "REJEITADO", "classificacao": "MODERN_DEFECT",
                   "falhas": falhas, "publicado": False}
-        (BASE / "evidence" / "silver-run.json").write_text(
+        (BASE / "evidence" / f"silver-{comp.replace(chr(45), "")}.json").write_text(
             json.dumps(pacote, indent=2, ensure_ascii=False), encoding="utf-8")
         print("\nSILVER REJEITADO — nada publicado")
         for f in falhas:
@@ -147,9 +160,18 @@ def main() -> int:
         "gates": {
             "count_confere_bronze": True,
             "soma_confere_bronze": True,
-            "especie_nome_sem_nulo": True,
             "rotulos_distintos": rotulos,
             "dt_credito_sem_nulo": True,
+            "numeros_do_contrato_conferidos": confere_contrato,
+        },
+        "DF-INSS-003": {
+            "codigos_orfaos": orfaos,
+            "linhas_afetadas": nulos,
+            "classificacao": "CONTRACT_AMBIGUITY" if orfaos else None,
+            "nota": ("código presente na fonte e ausente do dicionário oficial; "
+                     "especie_nome fica nulo, especie_nome_fonte preserva a origem, "
+                     "especie_orfa marca a linha. NÃO se inventa descrição.")
+            if orfaos else "sem órfãos nesta competência",
         },
         "DF-INSS-004": {
             "codigos_divergentes": divergentes,
@@ -158,13 +180,14 @@ def main() -> int:
         },
         "segundos": segundos,
     }
-    (BASE / "evidence" / "silver-run.json").write_text(
+    (BASE / "evidence" / f"silver-{comp.replace(chr(45), "")}.json").write_text(
         json.dumps(pacote, indent=2, ensure_ascii=False), encoding="utf-8")
 
     print(f"\nSILVER ACEITO · {n_silver:,} linhas · {segundos}s")
     print(f"  soma            : {soma_silver}  (confere com Bronze)")
     print(f"  rótulos únicos  : {rotulos}")
-    print(f"  DF-INSS-004     : {divergentes} códigos divergentes (preservados)")
+    print(f"  DF-INSS-004     : {divergentes} divergências de nomenclatura")
+    if orfaos: print(f"  DF-INSS-003     : órfãos {orfaos} · {nulos} linhas · CONTRACT_AMBIGUITY")
     return 0
 
 

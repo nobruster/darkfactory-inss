@@ -6,16 +6,16 @@ landing/
 lakehouse/
 .venv/
 
-# evidências são geradas por execução
+# perfilamentos e logs são descartáveis — regeráveis a qualquer momento
 evidence/*.log
-evidence/_perfil-cobertura.json
-evidence/_totais-controle.json
-evidence/_validacao-contrato.txt
+evidence/_*.json
+evidence/_*.txt
 
-# os packets de gate FICAM versionados — são a prova do que rodou:
-!evidence/bronze-run.json
-!evidence/silver-run.json
-!evidence/gold-run.json
+# os packets de gate FICAM versionados: são a prova do que rodou, e quando.
+# O padrão é <camada>-<AAAAMM>.json — uma competência nova entra sozinha,
+# sem precisar editar este arquivo.
+#   evidence/bronze-202601.json
+#   evidence/silver-202602.json  etc.
 
 __pycache__/
 *.pyc
