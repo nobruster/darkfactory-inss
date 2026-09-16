@@ -280,9 +280,13 @@ SOUL em `C:\Users\nobru\AppData\Local\hermes\SOUL.md`.
 Ao mudar o SOUL: reiniciar o gateway **e apagar a sessão**
 (`hermes sessions delete <id> --yes`) — senão ele mantém o contexto antigo.
 
-⚠️ **Divergência a resolver:** `docs/OPERADOR.md` descreve degrau 2 ("executa
-e reporta"); o `CLAUDE.md` e a regra acima dizem degrau 1 (vigia e espera).
-A prática em vigor é a **degrau 1**. O `OPERADOR.md` está desatualizado.
+**Degrau 1** — vigia, avisa, espera. Subir de degrau é decisão registrada em
+[`OPERADOR.md`](OPERADOR.md), não evolução automática por o agente ter ido bem.
+
+> Até 16/09/2026 o `OPERADOR.md` declarava degrau 2 enquanto o SOUL em
+> produção dizia degrau 1. Dois documentos sobre a mesma coisa, discordando
+> em silêncio — ninguém tinha lido os dois lado a lado. Corrigido: vale o
+> degrau 1, e a regra agora é explícita de que **o mais restritivo vence**.
 
 ---
 
