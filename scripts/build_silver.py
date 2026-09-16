@@ -48,11 +48,22 @@ def main() -> int:
     t0 = time.time()
     con = duckdb.connect(str(parcial / "inss.duckdb"))
 
-    # dicionário oficial como tabela — o join é pelo CÓDIGO
-    con.execute("create table dic_especie (codigo varchar primary key, nome varchar)")
-    con.executemany(
-        "insert into dic_especie values (?, ?)", sorted(especies.items())
-    )
+    # dicionário oficial como tabela — o join é pelo CÓDIGO.
+    # `origem` distingue o que o INSS publica do que apenas observamos:
+    # nenhum relatório deve apresentar nome observado como se fosse oficial.
+    con.execute("""create table dic_especie
+                   (codigo varchar primary key, nome varchar, origem varchar)""")
+    con.executemany("insert into dic_especie values (?, ?, 'dicionario_oficial')",
+                    sorted(especies.items()))
+
+    # complemento: códigos na fonte e ausentes do oficial (DF-INSS-003)
+    compl_path = BASE / "contracts" / "especies-complemento.yaml"
+    if compl_path.exists():
+        compl = yaml.safe_load(compl_path.read_text(encoding="utf-8"))
+        for cod, d in (compl.get("especies") or {}).items():
+            if cod not in especies:   # o oficial sempre vence
+                con.execute("insert into dic_especie values (?, ?, ?)",
+                            [cod, d["nome"], d.get("origem", "fonte")])
 
     # os 34 códigos cujo nome colide após truncamento (DF-INSS-002)
     colisoes = contrato["defeitos_fonte"][1]["colisoes_especie"]
@@ -91,6 +102,7 @@ def main() -> int:
                                                                as especie_nome_confere,
             lpad(trim(b.especie_codigo), 2, '0') in ({lista})  as especie_colide,
             (d.nome is null)                                   as especie_orfa,
+            coalesce(d.origem, 'ausente')                      as especie_nome_origem,
 
             '{comp}'                                           as competencia,
             b._linha_origem
@@ -110,12 +122,20 @@ def main() -> int:
     rotulos = q("select count(distinct especie_rotulo) from silver")
     divergentes = q("select count(distinct especie_codigo) from silver where not especie_nome_confere")
     datas_nulas = q("select count(*) from silver where dt_credito is null")
+    do_complemento = [r[0] for r in con.execute(
+        "select distinct especie_codigo from silver where especie_nome_origem = 'fonte' order by 1"
+    ).fetchall()]
 
     falhas = []
     if n_silver != n_bronze:
         falhas.append(f"count silver {n_silver} != bronze {n_bronze}")
     if soma_silver != soma_bronze:
         falhas.append(f"soma silver {soma_silver} != bronze {soma_bronze}")
+    # o complemento NUNCA sobrepõe o oficial: se um código tem nome do INSS,
+    # é esse que vale. Sobreposição silenciosa reescreveria o juiz.
+    sobreposto = [c for c in do_complemento if c in especies]
+    if sobreposto:
+        falhas.append(f"complemento sobrepôs o dicionário oficial em {sobreposto}")
     # DF-INSS-003: código na fonte, ausente do dicionário oficial.
     # NÃO é join quebrado — o join funcionou e não achou. É CONTRACT_AMBIGUITY:
     # classifica-se e escala, sem inventar descrição e sem falhar a execução.
@@ -166,6 +186,7 @@ def main() -> int:
         },
         "DF-INSS-003": {
             "codigos_orfaos": orfaos,
+            "codigos_do_complemento": do_complemento,
             "linhas_afetadas": nulos,
             "classificacao": "CONTRACT_AMBIGUITY" if orfaos else None,
             "nota": ("código presente na fonte e ausente do dicionário oficial; "

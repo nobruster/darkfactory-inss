@@ -1,10 +1,10 @@
 {
   "status": "ACEITO",
   "publicado": true,
-  "competencia": "2026-02",
-  "gerado_em": "2026-09-16T04:01:48.894819+00:00",
-  "linhas": 41522152,
-  "sum_vl_liquido": "78441374955.39",
+  "competencia": "2026-03",
+  "gerado_em": "2026-09-16T04:00:49.285670+00:00",
+  "linhas": 41719140,
+  "sum_vl_liquido": "78771556568.72",
   "gates": {
     "count_confere_bronze": true,
     "soma_confere_bronze": true,
@@ -26,5 +26,5 @@
     "classificacao": "CONTRACT_AMBIGUITY",
     "nota": "fonte e dicionário usam nomenclaturas diferentes; ambos preservados"
   },
-  "segundos": 40
+  "segundos": 29
 }

@@ -1,0 +1,37 @@
+# Complemento de espécies — códigos observados na fonte e ausentes do
+# dicionário oficial do INSS.
+#
+# ESTE ARQUIVO NÃO É O DICIONÁRIO OFICIAL.
+# O oficial é `especies-oficial.xlsx` (PDA 2025-2027), congelado e com
+# checksum. Ele permanece INTOCADO — editá-lo destruiria a evidência de que
+# o INSS não documenta estes códigos.
+#
+# Todo nome aqui tem `origem: fonte`, nunca `origem: dicionario_oficial`.
+# O Silver marca a procedência em `especie_nome_origem`, para que nenhum
+# relatório apresente um nome observado como se fosse oficial.
+#
+# Regra de manutenção: só entra código que (a) aparece nos dados, (b) não
+# está no XLSX oficial e (c) tem ocorrência medida em mais de uma
+# competência. Um caso isolado continua sendo CONTRACT_AMBIGUITY aberta.
+
+version: 1
+relacionado: DF-INSS-003
+classificacao: CONTRACT_AMBIGUITY   # continua ambígua — o complemento não resolve, documenta
+
+especies:
+  "67":
+    nome: "Pecúlio Obrigatório"
+    origem: fonte                    # observado em especie_nome_truncado
+    dicionario_oficial: ausente
+    nome_truncado: false             # cabe nos 20 chars — é o nome completo
+    ocorrencias_medidas:
+      "2026-01": {linhas: 0, valor: "0.00"}
+      "2026-02": {linhas: 3, valor: "3243.00"}
+      "2026-03": {linhas: 6, valor: "7863.00"}
+    nota: |
+      Recorrente e crescente. Não é ruído de uma competência.
+      O nome vem íntegro da fonte (não truncado), o que dá confiança
+      razoável de que "Pecúlio Obrigatório" é o rótulo correto — mas
+      isso é observação, não documentação oficial.
+    escalar_para: "INSS — dicionário oficial incompleto desde 2026-02"
+    revisar_se: "o INSS publicar dicionário novo que inclua o 67"

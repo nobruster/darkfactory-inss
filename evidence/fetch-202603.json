@@ -1,0 +1,19 @@
+{
+  "status": "ACEITO",
+  "publicado": true,
+  "competencia": "2026-03",
+  "gerado_em": "2026-09-16T03:49:29.259518+00:00",
+  "url": "https://armazenamento-dadosabertos.s3.sa-east-1.amazonaws.com/PDA_2025_2027/Grupos_de_dados/Benef%C3%ADcios+emitidos/D.SDA.PDA.003.EMI.202603.CSV.ZIP",
+  "zip_bytes": 579355085,
+  "zip_sha256": "de3cf06a7483218d18b5214768f9be31ef8f22fa093327df7684987848c6164b",
+  "csv_membro": "D.SDA.PDA.003.EMI.202603.csv",
+  "csv_bytes": 11723078486,
+  "gates": {
+    "http_200": true,
+    "bytes_conferem": true,
+    "zip_valido": true,
+    "membro_unico": true,
+    "congelado_444": true
+  },
+  "segundos": 73
+}

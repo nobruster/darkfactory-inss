@@ -1,2 +1,3 @@
 fbd909cb40512559d5e934286f600fe042bbac37f409d0caddf90b252f2e62d7  especies-oficial.xlsx
 a564f5d7235c944439f99eb6cc49748ab928798d3a89615057d490695915e2a9  glossario-campos.xlsx
+ba027911eb093c4f647f5aed0f9bf7fb8b0d1e4073d87dbfd2c2d0993d561ccc  contracts/especies-complemento.yaml

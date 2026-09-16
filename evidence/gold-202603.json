@@ -1,17 +1,17 @@
 {
   "status": "ACEITO",
   "publicado": true,
-  "competencia": "2026-02",
-  "gerado_em": "2026-09-16T04:01:49.699670+00:00",
+  "competencia": "2026-03",
+  "gerado_em": "2026-09-16T04:01:50.135410+00:00",
   "tabela": "gold_concentracao_bancaria",
   "grao": [
     "competencia",
     "banco_codigo",
     "uf_residencia"
   ],
-  "linhas": 437,
-  "qtd_beneficios": 41522152,
-  "sum_vl_total": "78441374955.39",
+  "linhas": 465,
+  "qtd_beneficios": 41719140,
+  "sum_vl_total": "78771556568.72",
   "gates": {
     "soma_confere_silver": true,
     "soma_confere_contrato": false,
@@ -21,5 +21,5 @@
     "inss_direto_separado": 25,
     "inss_direto_fora_do_ranking": true
   },
-  "segundos": 1
+  "segundos": 0
 }
