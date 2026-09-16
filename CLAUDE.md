@@ -150,6 +150,39 @@ make ancora COMP=2025-12     # ~50s varrendo o ZIP
 
 ---
 
+## A skill `nova-fabrica` — uma fábrica para qualquer demanda
+
+Este projeto deixou de ser só o INSS: ele agora **gera fábricas**.
+
+```bash
+$EDITOR .claude/skills/nova-fabrica/menu/fabricas.yaml   # descreva a demanda
+make fabrica SLUG=receita-cnpj                           # gera ~/darkfactory-receita-cnpj
+```
+
+A fábrica nasce com Makefile, medalhão, contrato, evals, cercas, CI, 3 ADRs
+semente e o gerador de agentes — **e com o contrato `NAO_MEDIDO`**.
+
+**Ela recusa construir até alguém medir a fonte.** Não é pendência: é o
+primeiro gate, e ele é contra a própria fábrica.
+
+```console
+$ make bronze
+CONTRATO NAO_MEDIDO — a fábrica recusa construir
+  pendências:
+    - controle_por_particao: {} — a ÂNCORA
+```
+
+Por que não deixar o gerador medir sozinho: um número que ninguém viu ser
+medido é indistinguível de um palpite — e palpite no lugar do total faz o
+gate comparar contra nada e publicar `ACEITO`. Foi o defeito da objeção #28.
+
+**O gate da skill gera uma fábrica de verdade e confere o produto.** Os
+checks que olham só a skill deixaram passar um Makefile citando 8 scripts
+inexistentes; só apareceu ao gerar. Por isso `_autoteste` fica no menu
+permanentemente — `make skills` o usa.
+
+---
+
 ## Task-Spec e evals
 
 `tasks/T-20260915-processar-competencia.md` — assinada (HMAC v3) e **ACEITA em

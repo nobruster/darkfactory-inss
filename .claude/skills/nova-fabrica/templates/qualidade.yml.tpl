@@ -1,10 +1,12 @@
 name: qualidade
 
-# Roda sem dados: não há fonte (575 MB) nem lakehouse no CI.
+# Roda sem dados: não há fonte nem lakehouse no CI.
 # O que se prova aqui é o que NÃO depende de execução — lint, testes
-# unitários, integridade do contrato e conformidade dos agentes.
+# unitários, integridade do contrato e conformidade das cercas.
 #
 # As evals de integração rodam localmente, contra o lakehouse real.
+#
+# Gerado por nova-fabrica em {{DATA}} para {{DISPLAY_NAME}}.
 
 on:
   push:
@@ -17,7 +19,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -25,7 +26,7 @@ jobs:
       - name: instalar
         run: |
           python -m pip install -q --upgrade pip
-          pip install -q ruff pytest pyyaml duckdb "pyarrow>=25,<26" openpyxl
+          pip install -q ruff pytest pyyaml duckdb "pyarrow>=25,<26"
 
       - name: lint
         run: ruff check ingestion scripts tests
@@ -42,63 +43,76 @@ jobs:
           python-version: "3.12"
       - run: pip install -q pyyaml
 
-      - name: contrato é YAML válido e completo
+      - name: contrato é YAML válido e coerente
         run: |
           python - <<'PY'
-          import sys, yaml, pathlib
-          c = yaml.safe_load(pathlib.Path("contracts/layout.yaml").read_text(encoding="utf-8"))
+          import pathlib
+          import sys
 
+          import yaml
+
+          c = yaml.safe_load(
+              pathlib.Path("contracts/layout.yaml").read_text(encoding="utf-8"))
           erros = []
-          if len(c["colunas"]) != c["fonte"]["colunas"]:
-              erros.append(f"declara {c['fonte']['colunas']} colunas, define {len(c['colunas'])}")
 
-          # posições contíguas a partir de 0 — leitura é posicional (ADR 0001)
-          pos = sorted(col["pos"] for col in c["colunas"])
-          if pos != list(range(len(pos))):
-              erros.append(f"posições não são contíguas: {pos}")
+          # Um contrato NAO_MEDIDO é estado legítimo — a fábrica recusa
+          # construir e o CI passa. O que NÃO pode é dizer medido: true
+          # com os campos vazios: isso é juiz de mentira.
+          if c.get("medido"):
+              if not c.get("colunas"):
+                  erros.append("medido: true mas colunas: []")
+              if not c.get("controle_por_particao"):
+                  erros.append("medido: true mas controle_por_particao: {}")
+              declaradas = (c.get("fonte") or {}).get("colunas")
+              if declaradas and len(c["colunas"]) != declaradas:
+                  erros.append(
+                      f"declara {declaradas} colunas, define {len(c['colunas'])}")
+              pos = sorted(col["pos"] for col in c["colunas"])
+              if pos != list(range(len(pos))):
+                  erros.append(f"posições não são contíguas: {pos}")
 
-          # todo defeito catalogado precisa de classificação
-          for d in c["defeitos_fonte"]:
+          # Toda âncora precisa dos dois números, como string.
+          for part, a in (c.get("controle_por_particao") or {}).items():
+              if "count_linhas" not in a:
+                  erros.append(f"{part}: âncora sem count_linhas")
+              if not a.get("evidencia"):
+                  erros.append(f"{part}: âncora sem arquivo de evidência")
+
+          # Todo defeito catalogado precisa de classificação.
+          for d in c.get("defeitos_fonte") or []:
               if "classificacao" not in d:
-                  erros.append(f"{d['id']} sem classificacao")
-
-          # os totais de controle são a âncora — não podem sumir
-          for campo in ("count_linhas", "sum_vl_liquido"):
-              if campo not in c["controle"]:
-                  erros.append(f"controle sem {campo}")
+                  erros.append(f"{d.get('id', '?')} sem classificacao")
 
           if erros:
               print("CONTRATO INVÁLIDO")
               for e in erros:
                   print(f"  - {e}")
               sys.exit(1)
-          print(f"contrato v{c['version']} OK · {len(c['colunas'])} colunas · "
-                f"{len(c['defeitos_fonte'])} defeitos")
+
+          estado = "MEDIDO" if c.get("medido") else "NAO_MEDIDO"
+          print(f"contrato v{c['version']} OK · {estado} · "
+                f"{len(c.get('defeitos_fonte') or [])} defeitos catalogados")
           PY
 
-      - name: dicionário oficial íntegro
+      - name: artefatos congelados íntegros
         run: |
-          cd contracts && sha256sum -c CHECKSUMS.txt
+          if [ -s contracts/CHECKSUMS.txt ]; then
+            cd contracts && sha256sum -c CHECKSUMS.txt
+          else
+            echo "CHECKSUMS.txt vazio — nenhuma fonte congelada ainda"
+          fi
 
-  agentes:
+  cercas:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: gate dos agentes
-        run: bash .claude/skills/novo-agente/quality-gate.sh --strict
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: pip install -q pyyaml
 
-      # Gera uma fábrica de verdade e confere o produto. Os outros checks
-      # olham a skill; este olha o que ela PRODUZ — que é onde o defeito
-      # aparece (um Makefile citando 8 scripts inexistentes passou em todo
-      # o resto e só apareceu ao gerar).
-      - name: gate da skill nova-fabrica
-        run: bash .claude/skills/nova-fabrica/quality-gate.sh --strict
+      - name: as duas cercas concordam entre si
+        run: python scripts/verificar_cercas.py
 
   congelado:
     runs-on: ubuntu-latest
@@ -107,10 +121,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      # ⚠ Até 16/09/2026 este job dizia cobrir docs/adrs/ e não cobria: o diff
-      # olhava só contracts/ e _raw/. Um ADR aceito podia ser REESCRITO sem que
-      # nada acusasse — e reescrever um ADR é apagar a decisão, não mudá-la.
-      # Auditoria de 16/09/2026, objeção #9.
       - name: ADR aceito não se edita — supersede-se
         run: |
           if [ "${{ github.event_name }}" != "pull_request" ]; then
@@ -126,7 +136,6 @@ jobs:
             echo ""
             echo "Um ADR aceito é vinculante. Mudar de ideia se faz com um ADR"
             echo "NOVO que supersede o anterior — nunca editando o antigo."
-            echo "Editar apaga o registro de que a decisão anterior existiu."
             exit 1
           fi
           echo "docs/adrs/: nenhum ADR existente foi tocado"
@@ -148,12 +157,11 @@ jobs:
             echo ""
             echo "BLOQUEIO: mudança em pasta congelada sem ADR novo."
             echo "Ajustar o juiz para um teste passar é trapaça, não conserto."
-            echo "Se a mudança é deliberada, escreva o ADR que a justifica."
             exit 1
           fi
-          # ⚠ Não basta existir um ADR novo: ele tem de NOMEAR o arquivo que
-          # mudou. Antes desta correção, um ADR sobre qualquer assunto
-          # destravava qualquer edição do contrato. Auditoria, objeção #9.
+          # Não basta existir um ADR novo: ele tem de NOMEAR o arquivo que
+          # mudou. Senão, um ADR sobre qualquer assunto destrava qualquer
+          # edição do contrato.
           FALTOU=""
           for arq in $MUDOU; do
             if ! grep -qF "$(basename "$arq")" $ADR_NOVO; then
@@ -164,15 +172,7 @@ jobs:
             echo ""
             echo "BLOQUEIO: há ADR novo, mas nenhum menciona:"
             for a in $FALTOU; do echo "  $a"; done
-            echo ""
-            echo "O ADR precisa nomear o arquivo congelado que justifica mudar."
-            echo "Um ADR sobre outro assunto não é autorização para esta edição."
             exit 1
           fi
           echo "ADR que justifica:"
           echo "$ADR_NOVO" | sed 's/^/  /'
-
-      - name: cercas de escrita concordam entre si
-        run: |
-          pip install -q pyyaml
-          python scripts/verificar_cercas.py

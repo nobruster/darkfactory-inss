@@ -1,0 +1,108 @@
+# Menu de fábricas — uma entrada por demanda.
+#
+# Cada entrada descreve o MÍNIMO que o gerador precisa saber para produzir uma
+# fábrica que já nasce com juiz. O que não estiver aqui, ele NÃO adivinha:
+# escreve NAO_MEDIDO e manda medir.
+#
+# Campos obrigatórios:
+#   display_name · pergunta · fonte.url_padrao · fonte.formato · grao_gold
+#
+# ⚠ `pergunta` não é documentação. É o que separa Gold de dump. Uma fábrica
+#   sem pergunta produz uma tabela grande que ninguém sabe ler.
+
+schema_version: 1
+
+# ─────────────────────────────────────────────────────────────────────
+# REFERÊNCIA — a fábrica que já existe, descrita no formato do menu.
+# Não gere esta: ela está em ~/darkfactory-inss e tem contrato medido.
+# Serve para você ver uma entrada completa e correta.
+# ─────────────────────────────────────────────────────────────────────
+_exemplo_inss:
+  display_name: "INSS — Benefícios Emitidos"
+  pergunta: "Quanto cada instituição financeira movimenta em benefícios do INSS, por UF?"
+
+  fonte:
+    url_padrao: "https://armazenamento-dadosabertos.s3.sa-east-1.amazonaws.com/PDA_2025_2027/Grupos_de_dados/Benefícios+emitidos/D.SDA.PDA.003.EMI.{aaaamm}.CSV.ZIP"
+    formato: csv
+    encoding: latin-1          # medido. NÃO era utf-8.
+    separador: ";"
+    tem_cabecalho: true
+    particao: competencia
+    leitura: posicional        # o cabeçalho traz "Espécie" duas vezes
+
+  grao_silver: ["_linha_origem"]         # dados anonimizados: sem chave primária
+  grao_gold: ["competencia", "banco_codigo", "uf_residencia"]
+
+  colunas_monetarias: ["vl_liquido"]
+  chaves_suspeitas: ["mun_residencia_codigo", "especie_codigo"]
+
+  sentinelas:
+    "998": "INSS pagando direto — não é instituição financeira"
+    "996": "Acordos Internacionais — não é instituição financeira"
+    "{ñ class}": "não classificado na origem"
+    "00000": "endereço ausente"
+
+  deduplicacao_proibida: true
+  motivo_dedup: "dados anonimizados (LGPD); linhas idênticas são registros distintos"
+
+
+# ─────────────────────────────────────────────────────────────────────
+# DEMANDAS — descomente, ajuste e gere.
+# ─────────────────────────────────────────────────────────────────────
+
+# Exemplo de próxima demanda. Os campos estão preenchidos com o que dá para
+# saber SEM baixar a fonte. Tudo que exige medição fica de fora de propósito —
+# encoding, separador e cabeçalho você confirma com `make perfil`.
+#
+# receita-cnpj:
+#   display_name: "Receita Federal — Cadastro CNPJ"
+#   pergunta: "Quantas empresas abrem e fecham por município, por mês?"
+#   fonte:
+#     url_padrao: "https://arquivos.receitafederal.gov.br/dados/cnpj/dados_abertos_cnpj/{aaaamm}/Empresas{n}.zip"
+#     formato: csv
+#     encoding: latin-1
+#     separador: ";"
+#     tem_cabecalho: false
+#     particao: competencia
+#   grao_silver: ["cnpj_basico"]
+#   grao_gold: ["competencia", "municipio_codigo", "situacao_cadastral"]
+#   colunas_monetarias: ["capital_social"]
+#   chaves_suspeitas: ["municipio_codigo"]
+#   sentinelas:
+#     "0000000": "município não informado"
+
+
+# ─────────────────────────────────────────────────────────────────────
+# AUTOTESTE — não remova.
+#
+# O quality-gate.sh gera ESTA entrada num diretório temporário e roda
+# verificar_fabrica.py no resultado. É o único teste que prova o gerador
+# de ponta a ponta: os outros olham a skill, este olha o PRODUTO.
+#
+# Sem ela o gate não tem o que gerar e degrada para IMPORTANT — foi assim
+# que um Makefile citando 8 scripts inexistentes passou em todos os
+# outros checks e só apareceu quando gerei de verdade.
+#
+# A URL aponta para .invalid (RFC 2606): nunca resolve, e ninguém baixa
+# nada por acidente. Gerar não toca a rede.
+# ─────────────────────────────────────────────────────────────────────
+_autoteste:
+  display_name: "Autoteste do gerador"
+  pergunta: "Esta entrada prova que o gerador produz uma fábrica coerente?"
+  fonte:
+    url_padrao: "https://autoteste.invalid/dados-{aaaamm}.zip"
+    formato: csv
+    encoding: latin-1
+    separador: ";"
+    tem_cabecalho: true
+    particao: competencia
+    particao_exemplo: "2026-01"
+  grao_silver: ["_linha_origem"]
+  grao_gold: ["competencia", "uf"]
+  colunas_monetarias: ["vl_exemplo"]
+  chaves_suspeitas: ["municipio_codigo"]
+  sentinelas:
+    "000": "não informado"
+  deduplicacao_proibida: true
+  motivo_dedup: "autoteste — sem dados reais"
+

@@ -10,7 +10,7 @@ export
 endif
 
 .PHONY: help init fetch check bronze silver gold all status ranking perfil contrato clean \
-        lint test evals agentes qa ancora cercas conferir
+        lint test evals agentes qa ancora cercas conferir skills fabrica
 
 help: ## lista os alvos
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -86,7 +86,15 @@ evals: ## as 3 evals de integração (exigem lakehouse construído)
 agentes: ## gate dos agentes em .claude/agents/
 	@bash .claude/skills/novo-agente/quality-gate.sh --strict
 
-qa: lint test agentes cercas ## tudo que não precisa de dados — o mesmo que o CI roda
+skills: ## gate das skills (novo-agente e nova-fabrica)
+	@bash .claude/skills/novo-agente/quality-gate.sh --strict
+	@bash .claude/skills/nova-fabrica/quality-gate.sh --strict
+
+fabrica: ## gera uma fábrica nova a partir do menu (SLUG=nome)
+	@test -n "$(SLUG)" || { echo "uso: make fabrica SLUG=<slug-do-menu>"; exit 2; }
+	@bash .claude/skills/nova-fabrica/scaffold.sh $(SLUG)
+
+qa: lint test skills cercas ## tudo que não precisa de dados — o mesmo que o CI roda
 	@echo ""
 	@echo "  qa OK — para provar os dados: make evals COMP=$(COMP)"
 
