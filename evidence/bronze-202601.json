@@ -7,7 +7,7 @@
     "soma_confere": true
   },
   "competencia": "2026-01",
-  "gerado_em": "2026-09-16T01:40:18.615456+00:00",
+  "gerado_em": "2026-09-16T02:41:06.557658+00:00",
   "fonte_sha256": "428626857daf30a3674d10b11bdd3f1ebd4a31d773de7c7ce5e3457f096f82e8",
   "parquet_sha256": "cd1e2b2ad9b959222cb266ccf62f8359d0b0272d832a71651fe373837d335d4e",
   "parquet_bytes": 303119260,
@@ -30,6 +30,6 @@
     "especie_nome_truncado"
   ],
   "blocos": 21,
-  "segundos": 122,
+  "segundos": 117,
   "contrato_versao": 2
 }

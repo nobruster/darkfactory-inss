@@ -1,0 +1,110 @@
+{
+  "contract": "TaskHandoff/v3",
+  "task_id": "T-20260915-processar-competencia",
+  "format_version": 3,
+  "spec": "/home/nobru/darkfactory-inss/tasks/T-20260915-processar-competencia.md",
+  "spec_digest": "sha256:98157bdaeac5bb73821ab4ea2795be47beeac2f947d10372c8e81e9409add89a",
+  "task_revision_digest": "sha256:51054dadd8ec5fdf11925eb55afd61c8802de50e169d9af787337904eb7d8b13",
+  "signoff_tier": 1,
+  "backend": "claude",
+  "workspace": "/home/nobru/darkfactory-inss",
+  "authorization": {
+    "scheme": "hmac-sha256-v3",
+    "ref": "hmac-sha256-v3:c80659a9:e970d2d40da374110ac078d77f516e58be418335afdd29cd82a06c8eaccc5062",
+    "tier": 1,
+    "signed_by": "nobru",
+    "signed_at": "2026-09-16T02:29:16Z"
+  },
+  "attempt": {
+    "id": "b63d745f-ebea-4b20-a1a4-f40952d696f1",
+    "issued_at": "2026-09-16T02:36:37Z"
+  },
+  "source": {
+    "workspace": "/home/nobru/darkfactory-inss",
+    "base_commit": "954a1bf18326750511ad1b1e324ea482e587aefd"
+  },
+  "dependency_closure": {
+    "contract": "DependencyClosure/v1",
+    "task_id": "T-20260915-processar-competencia",
+    "digest": "sha256:c60af26f7fdf96318de781bc3d9ffc133829f631404a143ebfbb7807a48eab57",
+    "members": [
+      {
+        "task_id": "T-20260915-processar-competencia",
+        "task_revision_digest": "sha256:51054dadd8ec5fdf11925eb55afd61c8802de50e169d9af787337904eb7d8b13"
+      }
+    ]
+  },
+  "write_scope": {
+    "touches_paths": [],
+    "creates_paths": [
+      "landing/",
+      "lakehouse/",
+      "evidence/"
+    ],
+    "do_not_touch": [
+      "\n_raw/**          a fonte: bytes originais, chmod 444\ncontracts/**     o juiz\ndocs/adrs/**     decisões vinculantes — revisão é por ADR novo\n",
+      "\n\nProtegido por ",
+      " e "
+    ]
+  },
+  "budgets": {
+    "iterations": 15,
+    "tokens": null,
+    "effort": "M"
+  },
+  "agent_contract": {
+    "version": 2,
+    "read": [
+      "intent",
+      "behavior",
+      "contract",
+      "guardrails",
+      "operations"
+    ],
+    "produce": [
+      "code",
+      "config"
+    ],
+    "required_tools": [
+      "git",
+      "bash",
+      "make",
+      "python3"
+    ],
+    "timeout_minutes": 30,
+    "sandbox_type": "host",
+    "output_artifacts": [
+      "evidence/bronze-*.json",
+      "evidence/silver-*.json",
+      "evidence/gold-*.json"
+    ],
+    "mcp_dependencies": [],
+    "emit": [
+      "pass",
+      "fail",
+      "retry_with_reason",
+      "parked_with_context"
+    ],
+    "backend_metadata": {}
+  },
+  "eval_command": [
+    "taskspec",
+    "run",
+    "--ci",
+    "/home/nobru/darkfactory-inss/tasks/T-20260915-processar-competencia.md"
+  ],
+  "acceptance_command": [
+    "taskspec",
+    "accept",
+    "--stamp",
+    "--handoff",
+    "<handoff.json>",
+    "/home/nobru/darkfactory-inss/tasks/T-20260915-processar-competencia.md"
+  ],
+  "evaluation_policy": {},
+  "environment_contract": {},
+  "identity_policy": {},
+  "receipt_requirements": [
+    "deterministic"
+  ]
+}
