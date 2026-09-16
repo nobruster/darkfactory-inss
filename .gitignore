@@ -11,6 +11,13 @@ evidence/*.log
 evidence/_*.json
 evidence/_*.txt
 
+# ⚠ EXCEÇÃO: os totais de controle NÃO são descartáveis. O contrato os cita
+# como evidência da âncora de cada competência (controle_por_competencia),
+# e um contrato que aponta para arquivo fora do git não prova nada — a cadeia
+# de custódia termina no primeiro clone. Auditoria de 16/09/2026, objeção #28.
+!evidence/_totais-*.json
+!evidence/_totais-controle.json
+
 # os packets de gate FICAM versionados: são a prova do que rodou, e quando.
 # O padrão é <camada>-<AAAAMM>.json — uma competência nova entra sozinha,
 # sem precisar editar este arquivo.

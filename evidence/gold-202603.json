@@ -2,7 +2,7 @@
   "status": "ACEITO",
   "publicado": true,
   "competencia": "2026-03",
-  "gerado_em": "2026-09-16T04:01:50.135410+00:00",
+  "gerado_em": "2026-09-16T20:19:44.690547+00:00",
   "tabela": "gold_concentracao_bancaria",
   "grao": [
     "competencia",
@@ -14,12 +14,16 @@
   "sum_vl_total": "78771556568.72",
   "gates": {
     "soma_confere_silver": true,
+    "soma_confere_ancora": true,
+    "qtd_confere_ancora": true,
     "soma_confere_contrato": false,
     "qtd_confere_silver": true,
+    "monetarias_sao_decimal": true,
+    "sem_fusao_por_nome": true,
     "ufs_completas": 27,
     "grao_unico": true,
-    "inss_direto_separado": 25,
+    "inss_direto_separado": 36,
     "inss_direto_fora_do_ranking": true
   },
-  "segundos": 0
+  "segundos": 1
 }

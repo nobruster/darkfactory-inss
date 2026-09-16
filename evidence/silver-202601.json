@@ -2,18 +2,22 @@
   "status": "ACEITO",
   "publicado": true,
   "competencia": "2026-01",
-  "gerado_em": "2026-09-16T02:52:14.477015+00:00",
+  "gerado_em": "2026-09-16T20:18:29.740887+00:00",
   "linhas": 41572553,
   "sum_vl_liquido": "78521752562.12",
   "gates": {
     "count_confere_bronze": true,
     "soma_confere_bronze": true,
+    "count_confere_ancora": true,
+    "soma_confere_ancora": true,
     "rotulos_distintos": 65,
     "dt_credito_sem_nulo": true,
+    "municipio_codigo_e_chave": true,
     "numeros_do_contrato_conferidos": true
   },
   "DF-INSS-003": {
     "codigos_orfaos": [],
+    "codigos_do_complemento": [],
     "linhas_afetadas": 0,
     "classificacao": null,
     "nota": "sem órfãos nesta competência"
@@ -23,5 +27,5 @@
     "classificacao": "CONTRACT_AMBIGUITY",
     "nota": "fonte e dicionário usam nomenclaturas diferentes; ambos preservados"
   },
-  "segundos": 26
+  "segundos": 52
 }

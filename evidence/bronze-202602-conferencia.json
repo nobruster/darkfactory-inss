@@ -1,0 +1,33 @@
+{
+  "tipo": "conferencia_retroativa",
+  "competencia": "2026-02",
+  "conferido_em": "2026-09-16T20:20:04.352986+00:00",
+  "motivo": "packet publicado com gates de total desligados; auditoria de 16/09/2026, objeção #28",
+  "packet_original": {
+    "arquivo": "evidence/bronze-202602.json",
+    "status": "ACEITO",
+    "gates": {
+      "rejeicoes_zero": true,
+      "count_confere": true,
+      "soma_confere": true
+    },
+    "nota": "preservado como está — evidência não se edita"
+  },
+  "ancora": {
+    "fonte": "evidence/_totais-202602.json",
+    "medida_em": "2026-09-16",
+    "count_linhas": 41522152,
+    "sum_vl_liquido": "78441374955.39"
+  },
+  "medido_no_parquet": {
+    "count_linhas": 41522152,
+    "sum_vl_liquido": "78441374955.39",
+    "min_vl_liquido": "0.00",
+    "max_vl_liquido": "60588.24",
+    "sha256": "a372077cfc9939f571700ea6f8f4ef9fefe7009a3f5fa942b0e7f520929d219c",
+    "parquet_intacto": true
+  },
+  "resultado": "CONFERE",
+  "divergencias": [],
+  "segundos": 6
+}

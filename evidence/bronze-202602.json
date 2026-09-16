@@ -1,13 +1,14 @@
 {
   "status": "ACEITO",
   "publicado": true,
+  "ancora": "evidence/_totais-202602.json",
   "gates": {
     "rejeicoes_zero": true,
-    "count_confere": false,
-    "soma_confere": false
+    "count_confere": true,
+    "soma_confere": true
   },
   "competencia": "2026-02",
-  "gerado_em": "2026-09-16T02:07:51.299820+00:00",
+  "gerado_em": "2026-09-16T20:15:27.274969+00:00",
   "fonte_sha256": "f0017391f44fea72324af570bf7ae61ee22f43796008b306e28901fd6f4e8cd3",
   "parquet_sha256": "a372077cfc9939f571700ea6f8f4ef9fefe7009a3f5fa942b0e7f520929d219c",
   "parquet_bytes": 303723368,
@@ -30,6 +31,6 @@
     "especie_nome_truncado"
   ],
   "blocos": 21,
-  "segundos": 119,
-  "contrato_versao": 2
+  "segundos": 122,
+  "contrato_versao": 3
 }
