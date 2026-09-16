@@ -37,39 +37,53 @@ duckdb:
   mission_architect: "Desenhar consultas cujo resultado o gate consegue provar."
   mission_developer: "Entregar SQL que bate centavo a centavo com a camada anterior."
 
-dbt:
-  display_name: dbt
-  description: "dbt — transformação declarativa. Bronze → Silver → Gold com testes."
-  primary_language: sql
-  threshold_architect: 0.90
-  threshold_developer: 0.95
-  color_architect: orange
-  color_developer: orange
-  capabilities_architect:
-    - "Decidir o que é modelo vs macro vs teste"
-    - "Planejar o ref-graph sem criar dependência circular entre camadas"
-  capabilities_developer:
-    - "Escrever teste que reprova quando a soma diverge, não quando o dbt roda"
-    - "Materializar respeitando o grão declarado no contrato"
-  maxim: "Um `dbt run` verde escondendo diferença não resolvida é um dia perdido."
-  mission_architect: "Desenhar camadas onde cada uma prova a anterior."
-  mission_developer: "Entregar modelo cujo teste reprova pelo motivo certo."
+# ─────────────────────────────────────────────────────────────
+# NÃO gerar ainda — a fábrica não usa dbt hoje.
+# Silver e Gold são SQL direto no DuckDB (scripts/build_silver.py,
+# scripts/build_gold.py). Gerar agente para ferramenta ausente cria
+# um conselheiro que recomenda o que não existe aqui.
+#
+# Descomente SE e QUANDO o dbt entrar no pipeline.
+# ─────────────────────────────────────────────────────────────
+
+# dbt:
+#   display_name: dbt
+#   description: "dbt — transformação declarativa com testes versionados"
+#   primary_language: sql
+#   threshold_architect: 0.90
+#   threshold_developer: 0.95
+#   color_architect: orange
+#   color_developer: orange
+#   capabilities_architect:
+#     - "Decidir o que é modelo vs macro vs teste"
+#     - "Planejar o ref-graph sem dependência circular entre camadas"
+#   capabilities_developer:
+#     - "Teste que reprova quando a soma diverge, não quando o dbt roda"
+#     - "Materializar respeitando o grão declarado no contrato"
+#   maxim: "Um `dbt run` verde escondendo diferença não resolvida é um dia perdido."
+#   mission_architect: "Desenhar camadas onde cada uma prova a anterior."
+#   mission_developer: "Entregar modelo cujo teste reprova pelo motivo certo."
 
 python:
   display_name: Python
-  description: "Python — a linguagem do pipeline: ingestão, evals, operador."
+  description: "Python — a linguagem do pipeline: ingestão, transformação, evals, operador. 13 scripts, ~1.400 linhas."
   primary_language: python
   threshold_architect: 0.90
   threshold_developer: 0.95
   color_architect: blue
   color_developer: blue
   capabilities_architect:
-    - "Decidir o que vira script novo vs função em script existente"
-    - "Planejar tratamento de arquivo de 11,7 GB sem carregar em memória"
+    - "Decidir o que vira script novo vs função em script existente — a fábrica prefere scripts pequenos com uma responsabilidade"
+    - "Planejar processamento de 11,7 GB em memória constante (ver ingest_bronze.py)"
+    - "Desenhar o packet de evidência: que campos provam o que aconteceu"
+    - "Decidir o que é gate (reprova a execução) vs observação medida (registra e segue)"
   capabilities_developer:
-    - "Usar Decimal em dinheiro; float em valor monetário é gate reprovado"
-    - "Escrever streaming que processa 41M de linhas em memória constante"
-    - "Publicar de forma atômica: .parcial primeiro, rename só depois dos gates"
+    - "Decimal em todo caminho monetário — float é gate reprovado (ADR 0002)"
+    - "Streaming com TextIOWrapper: `for linha in arquivo`, nunca `.read()` (ver perfil_cobertura.py)"
+    - "Publicação atômica: escreve em `.parcial`, roda os gates, só então `rename` (ver build_silver.py)"
+    - "argparse com `--competencia` — nenhum script assume a competência do contrato"
+    - "Packet JSON por execução em `evidence/<camada>-<AAAAMM>.json`, com os gates que passaram"
+    - "Gate que compara contra o contrato só quando a competência é a declarada; senão vira medição"
   maxim: "Streaming por padrão. Decimal em dinheiro. Publicação atômica ou nenhuma."
   mission_architect: "Desenhar código que falha alto quando o dado está errado."
   mission_developer: "Entregar script que recusa publicar quando um gate reprova."

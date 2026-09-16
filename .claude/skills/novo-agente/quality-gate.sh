@@ -48,8 +48,10 @@ fi
 for agente in "${agentes[@]}"; do
   nome="$(basename "$agente" .md)"
 
-  # A — placeholder vazado
-  if vazado="$(grep -oE '\{[A-Z_]+\}' "$agente" | sort -u | head -3 | tr '\n' ' ')"; then
+  # A — placeholder do NOSSO template que não foi renderizado.
+  # Lista explícita: `{X}/10` num exemplo de saída do agente é legítimo,
+  # `{SLUG}` sobrando não é. Casar `\{[A-Z_]+\}` pegaria os dois.
+  if vazado="$(grep -oE '\{(SLUG|DISPLAY_NAME|DESCRIPTION|THRESHOLD_[A-Z]+|COLOR_[A-Z]+|MAXIM|MISSION_[A-Z]+|CAPABILITIES_[A-Z]+|GERADO_EM)\}' "$agente" | sort -u | head -3 | tr '\n' ' ')"; then
     [[ -n "$vazado" ]] && achado BLOCKER "$agente" "placeholder não renderizado: $vazado"
   fi
 
