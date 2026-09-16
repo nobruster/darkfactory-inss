@@ -1,0 +1,65 @@
+# Índice da base de conhecimento.
+#
+# Os agentes leem este arquivo para descobrir que domínios existem e quanto
+# confiar em cada um. `confidence` não é enfeite: um doc marcado 0.60 significa
+# "use, mas verifique antes de decidir com ele".
+#
+# Regra de manutenção: domínio só entra aqui quando tem conteúdo. Pasta com
+# template vazio é pior que pasta ausente — cria a impressão de que há
+# conhecimento onde não há.
+
+schema_version: 1
+
+dominios:
+
+  fabrica:
+    descricao: "A doutrina desta fábrica: gates, defeitos, o que é proibido"
+    quick_reference: kb/fabrica/quick-reference.md
+    confidence: 1.00          # medido neste repositório, não inferido
+    quando_ler: "SEMPRE, antes de mexer em qualquer coisa do pipeline"
+    docs:
+      - path: kb/fabrica/concepts/fusao-silenciosa.md
+        sobre: "por que agrupar por nome funde 34 de 65 espécies sem o total acusar"
+        confidence: 1.00
+      - path: kb/fabrica/concepts/classificar-nao-corrigir.md
+        sobre: "o caso 173,44 e por que corrigir destrói evidência"
+        confidence: 1.00
+      - path: kb/fabrica/patterns/publicacao-atomica.md
+        sobre: ".parcial + rename; zero artefato quando um gate reprova"
+        confidence: 1.00
+
+  code-quality:
+    descricao: "Qualidade universal: comentários, código morto, segurança"
+    quick_reference: kb/code-quality/quick-reference.md
+    confidence: 0.85          # veio do repo de referência, não escrito aqui
+    quando_ler: "ao revisar ou simplificar código"
+    docs:
+      - path: kb/code-quality/concepts/comments.md
+        sobre: "quando um comentário ajuda e quando ele mente"
+        confidence: 0.85
+      - path: kb/code-quality/concepts/dead-code.md
+        sobre: "identificar código morto sem apagar o que protege"
+        confidence: 0.85
+      - path: kb/code-quality/concepts/security-universals.md
+        sobre: "segredos, entrada não confiável, SQL parametrizado"
+        confidence: 0.85
+
+# ─────────────────────────────────────────────────────────────
+# NÃO importados do repo de referência
+#
+# crewai, dagster, dbt, duckdb, mcp — 9 de 9 arquivos com TODO em cada,
+# ~31 linhas por arquivo (só o cabeçalho do template). Importar criaria a
+# impressão de que há conhecimento de DuckDB aqui, quando o que existe é
+# um formulário em branco.
+#
+# O conhecimento real de DuckDB neste projeto está em:
+#   .claude/agents/duckdb-architect.md · duckdb-developer.md
+#   docs/adrs/0002 (decimal) · 0003 (join pelo código)
+# ─────────────────────────────────────────────────────────────
+
+precedencia:
+  # Quando duas fontes discordam, vence a de cima.
+  - contracts/layout.yaml     # O JUIZ
+  - docs/adrs/                # decisões vinculantes
+  - kb/fabrica/               # a doutrina explicada
+  - kb/code-quality/          # boas práticas gerais

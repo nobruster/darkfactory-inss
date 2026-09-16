@@ -23,18 +23,42 @@ A separação architect/developer é **verificada**, não convencionada:
 
 ## Agentes
 
-| Agente | Classe | Faz | Arquivo |
-|---|---|---|---|
-| `fabrica-architect` | Architect | planeja mudança na fábrica, defende o contrato | [.claude/agents/fabrica-architect.md](.claude/agents/fabrica-architect.md) |
-| `fabrica-reviewer` | Closer | revisa contra a doutrina, **roda as 3 evals** | [.claude/agents/fabrica-reviewer.md](.claude/agents/fabrica-reviewer.md) |
-| `python-architect` | Architect | desenha script, streaming, packet de evidência | [.claude/agents/python-architect.md](.claude/agents/python-architect.md) |
-| `python-developer` | Developer | Decimal, publicação atômica, argparse | [.claude/agents/python-developer.md](.claude/agents/python-developer.md) |
-| `duckdb-architect` | Architect | grão do Gold, o que materializa | [.claude/agents/duckdb-architect.md](.claude/agents/duckdb-architect.md) |
-| `duckdb-developer` | Developer | SQL com DECIMAL, soma exata entre camadas | [.claude/agents/duckdb-developer.md](.claude/agents/duckdb-developer.md) |
-| `code-reviewer` | Closer | revisão genérica de código, BLOCKER/IMPORTANT/NIT | [.claude/agents/code-reviewer.md](.claude/agents/code-reviewer.md) |
-| `code-simplifier` | Closer | remove código morto — **sabe o que não tocar** | [.claude/agents/code-simplifier.md](.claude/agents/code-simplifier.md) |
-| `code-documenter` | Closer | docstrings, README, ADR no estilo do projeto | [.claude/agents/code-documenter.md](.claude/agents/code-documenter.md) |
-| `codebase-explorer` | Explorer | mapeia repositório desconhecido | [.claude/agents/codebase-explorer.md](.claude/agents/codebase-explorer.md) |
+### Da fábrica (transversais)
+
+| Agente | Classe | Faz |
+|---|---|---|
+| `fabrica-architect` | Architect | planeja mudança, defende o contrato |
+| `fabrica-reviewer` | Closer | revisa contra a doutrina, **roda as 3 evals** |
+
+### Por superfície de decisão
+
+| Agente | Classe | Faz |
+|---|---|---|
+| `contrato-architect` / `-developer` | ⚠️ threshold **0.98** | o juiz: defeitos, domínios, totais de controle |
+| `evidencia-architect` / `-developer` | Architect / Developer | packets, cadeia de custódia sha256 |
+| `operacao-architect` / `-developer` | Architect / Developer | Makefile, operador, rotina do Hermes |
+
+### Por tecnologia
+
+| Agente | Classe | Faz |
+|---|---|---|
+| `python-architect` / `-developer` | Architect / Developer | streaming, Decimal, publicação atômica |
+| `duckdb-architect` / `-developer` | Architect / Developer | grão do Gold, SQL com DECIMAL |
+
+### Universais
+
+| Agente | Classe | Faz |
+|---|---|---|
+| `code-reviewer` | Closer | revisão genérica, BLOCKER/IMPORTANT/NIT |
+| `code-simplifier` | Closer | remove código morto — **sabe o que não tocar** |
+| `code-documenter` | Closer | docstrings, README, ADR |
+| `codebase-explorer` | Explorer | mapeia repositório desconhecido |
+
+**16 agentes.** Todos em [.claude/agents/](.claude/agents/), todos aprovados pelo
+`quality-gate.sh`.
+
+> **Sobre `contrato-*` ter threshold 0.98:** é o mais alto do projeto. Mexer no
+> juiz é a decisão mais cara que existe aqui — abaixo dessa confiança, escala.
 
 ---
 
