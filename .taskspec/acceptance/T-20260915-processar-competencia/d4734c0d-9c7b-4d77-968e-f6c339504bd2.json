@@ -1,0 +1,40 @@
+{
+  "acceptance_tier": 1,
+  "accepted_at": "2026-09-16T02:52:15Z",
+  "accepted_by": "nobru",
+  "contract": "AcceptanceRecord/v1",
+  "gate_outcomes": {
+    "authorization": {
+      "code": "AUTHORIZATION_VALID",
+      "status": "pass"
+    },
+    "evaluation": {
+      "code": "EVAL_PASSED",
+      "status": "pass"
+    },
+    "evidence": {
+      "code": "EVIDENCE_SATISFIED",
+      "proof": [
+        "format v3 or earlier: v4 policy receipts are not required"
+      ],
+      "status": "pass"
+    },
+    "preflight": {
+      "code": "PREFLIGHT_PASSED",
+      "status": "pass",
+      "warnings": []
+    }
+  },
+  "outcome": {
+    "code": "ACCEPTED_TIER_1",
+    "status": "accepted"
+  },
+  "receipts": [],
+  "subject": {
+    "attempt_id": "d4734c0d-9c7b-4d77-968e-f6c339504bd2",
+    "authorization_ref": "hmac-sha256-v3:c80659a9:e970d2d40da374110ac078d77f516e58be418335afdd29cd82a06c8eaccc5062",
+    "base_commit": "692198dc59b4aaf25b988ffdf0020ba00d87bb8c",
+    "task_id": "T-20260915-processar-competencia",
+    "task_revision_digest": "sha256:51054dadd8ec5fdf11925eb55afd61c8802de50e169d9af787337904eb7d8b13"
+  }
+}

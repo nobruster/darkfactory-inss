@@ -32,11 +32,15 @@ execution_backend: any
 signed_off: true
 signed_off_by: nobru
 signed_off_at: 2026-09-16T02:29:16Z
-accepted: false
-accepted_by: (none)
-accepted_at: (none)
+accepted: true
+accepted_by: nobru
+accepted_at: 2026-09-16T02:52:15Z
 evidence_refs: []
 signed_off_sig: hmac-sha256-v3:c80659a9:e970d2d40da374110ac078d77f516e58be418335afdd29cd82a06c8eaccc5062
+accepted_tier: 1
+accepted_attempt_id: d4734c0d-9c7b-4d77-968e-f6c339504bd2
+accepted_authorization_ref: hmac-sha256-v3:c80659a9:e970d2d40da374110ac078d77f516e58be418335afdd29cd82a06c8eaccc5062
+acceptance_record_digest: sha256:779524182af27541dd00cc3a46c590dfc34f55ae6c7a557f24ad1c8ce979947f
 ---
 
 # "Processar uma competência do INSS da fonte ao Gold"
