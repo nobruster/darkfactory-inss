@@ -1,0 +1,113 @@
+# Menu de tecnologias da fábrica INSS.
+#
+# Uma entrada aqui = um par de agentes gerado (architect + developer).
+# Depois de editar: bash .claude/skills/novo-agente/scaffold.sh <slug>
+#
+# Campos obrigatórios: display_name, description, primary_language,
+# threshold_architect, threshold_developer, maxim, mission_architect,
+# mission_developer. As listas de capabilities podem ser vazias, mas aí o
+# agente nasce genérico — prefira escrever 2 a 4 linhas concretas.
+#
+# Sobre os thresholds: é a confiança mínima para o agente agir sem escalar.
+# developer > architect sempre — quem muda estado precisa de mais certeza.
+
+schema_version: 1
+
+# ─────────────────────────────────────────────────────────────
+# Já em uso no pipeline
+# ─────────────────────────────────────────────────────────────
+
+duckdb:
+  display_name: DuckDB
+  description: "DuckDB — engine analítico in-process. Guarda silver e gold da fábrica."
+  primary_language: sql
+  threshold_architect: 0.90
+  threshold_developer: 0.95
+  color_architect: green
+  color_developer: green
+  capabilities_architect:
+    - "Decidir o que materializa em tabela vs fica em view"
+    - "Desenhar o grão do Gold sem perder a chave (competencia, banco, uf)"
+    - "Planejar consulta sobre 41,7M linhas dentro do orçamento de memória"
+  capabilities_developer:
+    - "Escrever SQL com DECIMAL(18,2) em toda coluna monetária — nunca DOUBLE"
+    - "Garantir que agregação preserve a soma exata da camada anterior"
+    - "Ler EXPLAIN para entender por que uma query estourou memória"
+  maxim: "Colunar é rápido. Decimal é exato. O Gold serve só depois que o juiz libera."
+  mission_architect: "Desenhar consultas cujo resultado o gate consegue provar."
+  mission_developer: "Entregar SQL que bate centavo a centavo com a camada anterior."
+
+dbt:
+  display_name: dbt
+  description: "dbt — transformação declarativa. Bronze → Silver → Gold com testes."
+  primary_language: sql
+  threshold_architect: 0.90
+  threshold_developer: 0.95
+  color_architect: orange
+  color_developer: orange
+  capabilities_architect:
+    - "Decidir o que é modelo vs macro vs teste"
+    - "Planejar o ref-graph sem criar dependência circular entre camadas"
+  capabilities_developer:
+    - "Escrever teste que reprova quando a soma diverge, não quando o dbt roda"
+    - "Materializar respeitando o grão declarado no contrato"
+  maxim: "Um `dbt run` verde escondendo diferença não resolvida é um dia perdido."
+  mission_architect: "Desenhar camadas onde cada uma prova a anterior."
+  mission_developer: "Entregar modelo cujo teste reprova pelo motivo certo."
+
+python:
+  display_name: Python
+  description: "Python — a linguagem do pipeline: ingestão, evals, operador."
+  primary_language: python
+  threshold_architect: 0.90
+  threshold_developer: 0.95
+  color_architect: blue
+  color_developer: blue
+  capabilities_architect:
+    - "Decidir o que vira script novo vs função em script existente"
+    - "Planejar tratamento de arquivo de 11,7 GB sem carregar em memória"
+  capabilities_developer:
+    - "Usar Decimal em dinheiro; float em valor monetário é gate reprovado"
+    - "Escrever streaming que processa 41M de linhas em memória constante"
+    - "Publicar de forma atômica: .parcial primeiro, rename só depois dos gates"
+  maxim: "Streaming por padrão. Decimal em dinheiro. Publicação atômica ou nenhuma."
+  mission_architect: "Desenhar código que falha alto quando o dado está errado."
+  mission_developer: "Entregar script que recusa publicar quando um gate reprova."
+
+# ─────────────────────────────────────────────────────────────
+# Exemplos prontos para quando entrarem no pipeline
+# Descomente e rode: scaffold.sh <slug>
+# ─────────────────────────────────────────────────────────────
+
+# polars:
+#   display_name: Polars
+#   description: "Polars — DataFrames em Rust, lazy, out-of-core"
+#   primary_language: python
+#   threshold_architect: 0.90
+#   threshold_developer: 0.95
+#   color_architect: cyan
+#   color_developer: cyan
+#   capabilities_architect:
+#     - "Decidir o que fica em Polars vs DuckDB no Silver"
+#   capabilities_developer:
+#     - "LazyFrame que não materializa antes do necessário"
+#     - "Decimal em coluna monetária — nunca Float64"
+#   maxim: "Lazy até o último momento. Decimal sempre que for dinheiro."
+#   mission_architect: "Desenhar o caminho onde o dado grande não vira memória."
+#   mission_developer: "Entregar transformação que passa nos gates de soma."
+
+# dagster:
+#   display_name: Dagster
+#   description: "Dagster — orquestração e linhagem. NÃO é parser."
+#   primary_language: python
+#   threshold_architect: 0.90
+#   threshold_developer: 0.95
+#   color_architect: purple
+#   color_developer: purple
+#   capabilities_architect:
+#     - "Decidir o que é asset vs job vs sensor"
+#   capabilities_developer:
+#     - "Asset que delega ao script — orquestrador não reimplementa parser"
+#   maxim: "Linhagem, não parser. Se o asset calcula dinheiro, está errado."
+#   mission_architect: "Desenhar dependências que refletem o pipeline real."
+#   mission_developer: "Entregar asset que chama o script existente."
