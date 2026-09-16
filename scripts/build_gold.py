@@ -56,10 +56,20 @@ def main() -> int:
                 uf_residencia,
                 count(*)                                     as qtd_beneficios,
                 sum(vl_liquido)                              as vl_total,
-                round(avg(vl_liquido), 2)                    as vl_medio,
+                -- avg() sobre DECIMAL retorna DOUBLE no DuckDB. Sem o cast,
+                -- vl_medio seria publicado como float — violando o ADR 0002
+                -- num campo monetário do Gold. Auditoria de 16/09/2026.
+                cast(round(avg(vl_liquido), 2) as decimal(18,2))
+                                                             as vl_medio,
                 min(vl_liquido)                              as vl_min,
                 max(vl_liquido)                              as vl_max,
-                banco_codigo = '998'                         as e_inss_direto
+                -- Sentinelas: códigos que ocupam a posição de banco mas não
+                -- são instituição financeira. 998 = INSS pagando direto;
+                -- 996 = Acordos Internacionais (20.554 benefícios em 2026-03,
+                -- ranqueado na posição 19 antes desta correção).
+                -- O ADR 0005 raciocina por CLASSE, não por código único —
+                -- a implementação anterior tinha só o 998. Auditoria 16/09/2026.
+                banco_codigo in ('996', '998')               as e_inss_direto
             from silver
             group by competencia, banco_codigo, uf_residencia
         ),
@@ -102,9 +112,25 @@ def main() -> int:
     inss_direto = q("select count(*) from gold_concentracao_bancaria where e_inss_direto")
     inss_ranqueado = q("""select count(*) from gold_concentracao_bancaria
                           where e_inss_direto and posicao_na_uf is not null""")
+    # ADR 0002 — toda coluna monetária é DECIMAL. Sem este gate, um avg() ou
+    # uma divisão transforma dinheiro em float sem que nada acuse: a soma
+    # continua batendo, porque o defeito está no TIPO, não no valor.
+    monetarias_float = [
+        r[0] for r in con.execute("""
+            select column_name, data_type
+            from information_schema.columns
+            where table_name = 'gold_concentracao_bancaria'
+              and column_name like 'vl_%'
+              and data_type not like 'DECIMAL%'
+        """).fetchall()
+    ]
 
-    # A coerência com a camada anterior vale SEMPRE. Os totais absolutos do
-    # contrato valem só para a competência que ele declara.
+    # A coerência com a camada anterior vale SEMPRE. A âncora de total vale
+    # sempre que existir para a competência — ver objeção #28 da auditoria.
+    ancoras = contrato.get("controle_por_competencia") or {}
+    ancora = ancoras.get(comp)
+    if ancora is None and comp == contrato["competencia"]:
+        ancora = ctl
     confere_contrato = comp == contrato["competencia"]
 
     falhas = []
@@ -112,9 +138,14 @@ def main() -> int:
         falhas.append(f"soma gold {soma_gold} != silver {soma_silver}")
     if qtd_gold != qtd_silver:
         falhas.append(f"qtd gold {qtd_gold} != silver {qtd_silver}")
+    if ancora:
+        # O Gold é a camada publicada: o dinheiro que sai daqui tem de bater
+        # com o que foi medido na fonte, não só com a camada de cima.
+        if str(soma_gold) != ancora["sum_vl_liquido"]:
+            falhas.append(f"soma gold {soma_gold} != âncora {ancora['sum_vl_liquido']}")
+        if qtd_gold != ancora["count_linhas"]:
+            falhas.append(f"qtd gold {qtd_gold} != âncora {ancora['count_linhas']}")
     if confere_contrato:
-        if str(soma_gold) != ctl["sum_vl_liquido"]:
-            falhas.append(f"soma gold {soma_gold} != contrato {ctl['sum_vl_liquido']}")
         if ufs != ctl["ufs_distintas"]:
             falhas.append(f"UFs {ufs} != contrato {ctl['ufs_distintas']}")
     elif ufs < 27:
@@ -123,9 +154,22 @@ def main() -> int:
     if dup:
         falhas.append(f"grão duplicado em {dup} combinações")
     if not inss_direto:
-        falhas.append("banco 998 ausente — deveria ter linha própria")
+        falhas.append("sentinela (996/998) ausente — deveria ter linha própria")
+    # Fusão silenciosa de banco: dois códigos distintos com o mesmo nome
+    # truncado (756/748 Sicoob-Sicredi, 037/047 Banco do Estado). O Gold agrega
+    # por código, então isto não corrompe — mas se alguém trocar para nome,
+    # este gate acusa. DF-INSS-002 estendido na auditoria de 16/09/2026.
+    bancos_cod = q("select count(distinct banco_codigo) from gold_concentracao_bancaria")
+    bancos_nome = q("select count(distinct banco_nome) from gold_concentracao_bancaria")
+    if bancos_cod <= bancos_nome:
+        falhas.append(
+            f"agregação por nome? códigos {bancos_cod} <= nomes {bancos_nome} "
+            f"(DF-INSS-002: 756/748 e 037/047 colidem)"
+        )
     if inss_ranqueado:
         falhas.append(f"banco 998 ranqueado em {inss_ranqueado} UFs — contrato proíbe")
+    if monetarias_float:
+        falhas.append(f"coluna monetária não-DECIMAL: {monetarias_float} (ADR 0002)")
 
     segundos = round(time.time() - t0)
 
@@ -144,7 +188,7 @@ def main() -> int:
     con.close()
 
     pacote = {
-        "status": "ACEITO",
+        "status": "ACEITO" if ancora else "ACEITO_SEM_ANCORA",
         "publicado": True,
         "competencia": comp,
         "gerado_em": datetime.now(UTC).isoformat(),
@@ -155,8 +199,12 @@ def main() -> int:
         "sum_vl_total": str(soma_gold),
         "gates": {
             "soma_confere_silver": True,
+            "soma_confere_ancora": bool(ancora),
+            "qtd_confere_ancora": bool(ancora),
             "soma_confere_contrato": confere_contrato,
             "qtd_confere_silver": True,
+            "monetarias_sao_decimal": True,
+            "sem_fusao_por_nome": True,
             "ufs_completas": ufs,
             "grao_unico": True,
             "inss_direto_separado": inss_direto,
@@ -167,9 +215,10 @@ def main() -> int:
     (BASE / "evidence" / f"gold-{comp.replace(chr(45), "")}.json").write_text(
         json.dumps(pacote, indent=2, ensure_ascii=False), encoding="utf-8")
 
-    print(f"\nGOLD ACEITO · {linhas:,} linhas de agregado · {segundos}s")
+    print(f"\nGOLD {pacote['status']} · {linhas:,} linhas de agregado · {segundos}s")
     print(f"  benefícios : {qtd_gold:,}  (confere com Silver)")
-    print(f"  soma       : {soma_gold}  (confere com contrato)")
+    print(f"  soma       : {soma_gold}  "
+          f"{"(confere com a âncora da fonte)" if ancora else "(SEM ÂNCORA)"}")
     print(f"  UFs        : {ufs}")
     print(f"  INSS-direto: {inss_direto} linhas, fora do ranking")
     return 0

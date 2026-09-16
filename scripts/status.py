@@ -42,7 +42,10 @@ def main() -> int:
                 print(f"    {camada:8} —")
                 continue
             st = d.get("status", "?")
-            marca = "OK " if st == "ACEITO" else "!! "
+            # ACEITO_SEM_ANCORA é publicação legítima, mas SEM juiz de total:
+            # merece marca própria. Confundi-la com ACEITO seria repetir o
+            # erro que a auditoria de 16/09/2026 encontrou (objeção #28).
+            marca = {"ACEITO": "OK ", "ACEITO_SEM_ANCORA": "~? "}.get(st, "!! ")
             extra = ""
             if camada == "bronze":
                 extra = f"{d.get('linhas', 0):,} linhas · {d.get('sum_vl_liquido', '')}"
@@ -55,10 +58,12 @@ def main() -> int:
                 extra = f"{d.get('linhas', 0)} agregados · {d.get('sum_vl_total', '')}"
             elif camada == "fetch":
                 extra = f"{d.get('zip_bytes', 0):,} bytes"
-            print(f"    {marca}{camada:8} {st:10} {extra}")
+            print(f"    {marca}{camada:8} {st:18} {extra}")
             if st != "ACEITO":
                 for falha in d.get("falhas", []):
                     print(f"             ↳ {falha}")
+                if d.get("aviso"):
+                    print(f"             ↳ {d['aviso']}")
     print()
     return 0
 

@@ -151,9 +151,15 @@ def main() -> int:
     # ── publicação: só agora vira arquivo oficial ────────────────────────
     parcial.rename(destino)
     sha = sha256_de(destino)
-    (raw / f"fonte-{aaaamm}.zip.sha256").write_text(
-        f"{sha}  fonte-{aaaamm}.zip\n", encoding="utf-8")
+    registro = raw / f"fonte-{aaaamm}.zip.sha256"
+    if registro.exists():
+        os.chmod(registro, 0o644)
+    registro.write_text(f"{sha}  fonte-{aaaamm}.zip\n", encoding="utf-8")
     os.chmod(destino, 0o444)  # congelada
+    # ⚠ O registro de custódia congela junto com o arquivo. Um sha256 gravável
+    # ao lado de um zip 444 não protege nada: quem alterasse a fonte poderia
+    # ajustar a impressão digital para combinar. Auditoria 16/09/2026 (B-7c).
+    os.chmod(registro, 0o444)
 
     pacote = {
         "status": "ACEITO",

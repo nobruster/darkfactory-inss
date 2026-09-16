@@ -84,8 +84,19 @@ def main() -> int:
             trim(substr(trim(b.banco),
                  position('-' in trim(b.banco)) + 1))          as banco_nome,
 
+            -- O código SUIBE de 5 dígitos É único: 5.572 códigos ↔ 5.572 nomes,
+            -- zero colisão nos dois sentidos (medido em 2026-03). É chave legítima.
+            --
+            -- ⚠ O que NÃO se pode fazer é confundi-lo com uf_residencia. A UF
+            -- embutida no nome ('21504-Sp-São Paulo') é a UF do MUNICÍPIO; a
+            -- coluna uf_residencia é a UF do BENEFICIÁRIO. Elas divergem em
+            -- 429.803 linhas de uma amostra de 7 UFs — são dois fatos distintos.
+            -- Agrupar por (uf_residencia, codigo) partiria São Paulo em 27
+            -- pedaços. Ver DF-INSS-005. Auditoria 16/09/2026, objeção #4.
             split_part(trim(b.mun_pagto), '-', 1)              as mun_pagto_codigo,
             split_part(trim(b.mun_residencia), '-', 1)         as mun_residencia_codigo,
+            split_part(trim(b.mun_residencia), '-', 2)         as mun_residencia_uf,
+            trim(b.mun_residencia)                             as mun_residencia_fonte,
 
             cast(replace(replace(trim(b.vl_liquido), '.', ''), ',', '.')
                  as decimal(18,2))                             as vl_liquido,
@@ -101,7 +112,13 @@ def main() -> int:
             (trim(b.especie_nome_truncado) = substr(d.nome, 1, 20))
                                                                as especie_nome_confere,
             lpad(trim(b.especie_codigo), 2, '0') in ({lista})  as especie_colide,
-            (d.nome is null)                                   as especie_orfa,
+            -- Órfão = ausente do dicionário OFICIAL do INSS. O complemento dá
+            -- rótulo legível, mas NÃO apaga a marca: o contrato manda
+            -- "especie_orfa = true marca a linha" (DF-INSS-003), e a
+            -- ambiguidade continua aberta enquanto o INSS não documentar.
+            -- Antes desta correção, o complemento zerava a flag — auditoria 16/09/2026.
+            (d.origem is null or d.origem <> 'dicionario_oficial')
+                                                               as especie_orfa,
             coalesce(d.origem, 'ausente')                      as especie_nome_origem,
 
             '{comp}'                                           as competencia,
@@ -144,6 +161,16 @@ def main() -> int:
     ).fetchall()] if nulos else []
     # Os números de espécie do contrato valem para a competência que ele declara.
     # Em outra competência viram observação medida, não gate — a fonte muda.
+    # Mas a ÂNCORA de total vale sempre que existir: ver objeção #28.
+    ancoras = contrato.get("controle_por_competencia") or {}
+    ancora = ancoras.get(comp)
+    if ancora is None and comp == contrato["competencia"]:
+        ancora = contrato["controle"]
+    if ancora:
+        if n_silver != ancora["count_linhas"]:
+            falhas.append(f"count silver {n_silver} != âncora {ancora['count_linhas']}")
+        if str(soma_silver) != ancora["sum_vl_liquido"]:
+            falhas.append(f"soma silver {soma_silver} != âncora {ancora['sum_vl_liquido']}")
     confere_contrato = comp == contrato["competencia"]
     if confere_contrato:
         if rotulos != 65:
@@ -152,6 +179,16 @@ def main() -> int:
             falhas.append(f"divergentes {divergentes} != 29 (DF-INSS-004)")
     if datas_nulas:
         falhas.append(f"dt_credito nula em {datas_nulas} linhas")
+    # DF-INSS-005 — o código de município só é chave enquanto for bijetivo com
+    # o nome. Se o INSS reciclar um código, agregações por município passam a
+    # somar cidades diferentes e o total continua batendo. Este gate é o único
+    # lugar onde isso apareceria.
+    mun_ambiguo = q("""select count(*) from (
+                         select mun_residencia_codigo from silver
+                         group by 1 having count(distinct mun_residencia_fonte) > 1)""")
+    if mun_ambiguo:
+        falhas.append(f"mun_residencia_codigo com >1 nome em {mun_ambiguo} códigos "
+                      f"(DF-INSS-005: deixou de ser chave)")
 
     con.close()
     segundos = round(time.time() - t0)
@@ -171,7 +208,7 @@ def main() -> int:
     parcial.rename(destino)
 
     pacote = {
-        "status": "ACEITO",
+        "status": "ACEITO" if ancora else "ACEITO_SEM_ANCORA",
         "publicado": True,
         "competencia": comp,
         "gerado_em": datetime.now(UTC).isoformat(),
@@ -180,8 +217,11 @@ def main() -> int:
         "gates": {
             "count_confere_bronze": True,
             "soma_confere_bronze": True,
+            "count_confere_ancora": bool(ancora),
+            "soma_confere_ancora": bool(ancora),
             "rotulos_distintos": rotulos,
             "dt_credito_sem_nulo": True,
+            "municipio_codigo_e_chave": True,
             "numeros_do_contrato_conferidos": confere_contrato,
         },
         "DF-INSS-003": {
@@ -204,8 +244,9 @@ def main() -> int:
     (BASE / "evidence" / f"silver-{comp.replace(chr(45), "")}.json").write_text(
         json.dumps(pacote, indent=2, ensure_ascii=False), encoding="utf-8")
 
-    print(f"\nSILVER ACEITO · {n_silver:,} linhas · {segundos}s")
-    print(f"  soma            : {soma_silver}  (confere com Bronze)")
+    print(f"\nSILVER {pacote['status']} · {n_silver:,} linhas · {segundos}s")
+    print(f"  soma            : {soma_silver}  "
+          f"{"(confere com Bronze e âncora)" if ancora else "(confere com Bronze; SEM ÂNCORA)"}")
     print(f"  rótulos únicos  : {rotulos}")
     print(f"  DF-INSS-004     : {divergentes} divergências de nomenclatura")
     if orfaos:

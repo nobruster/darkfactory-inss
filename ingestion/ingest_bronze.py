@@ -59,9 +59,17 @@ def main() -> int:
     contrato = carregar_contrato()
     comp = args.competencia or contrato["competencia"]
     aaaamm = comp.replace("-", "")
-    # os totais de controle valem só para a competência que o contrato declara
-    confere_controle = comp == contrato["competencia"]
-    ctl = contrato["controle"]
+    # A âncora é POR COMPETÊNCIA. O bloco `controle:` legado vale para a
+    # competência que o contrato declara; `controle_por_competencia:` cobre
+    # as demais, com números medidos direto do ZIP por totais_controle.py.
+    #
+    # Sem âncora não existe gate de total — e isso não pode passar por ACEITO
+    # normal. Ver objeção #28 da auditoria de 16/09/2026.
+    ancoras = contrato.get("controle_por_competencia") or {}
+    ctl = ancoras.get(comp)
+    if ctl is None and comp == contrato["competencia"]:
+        ctl = contrato["controle"]
+    confere_controle = ctl is not None
     ncols = contrato["fonte"]["colunas"]
     nomes = [c["nome"] for c in contrato["colunas"]]
     schema = schema_de(contrato)
@@ -146,10 +154,13 @@ def main() -> int:
         if str(soma) != ctl["sum_vl_liquido"]:
             falhas.append(f"soma {soma} != contrato {ctl['sum_vl_liquido']}")
     else:
-        print(f"\n  competência {comp} != contrato {contrato['competencia']}:")
-        print("  totais de controle NÃO comparados — medidos aqui:")
+        print(f"\n  ⚠ SEM ÂNCORA para {comp} — nenhum gate de total rodou.")
+        print("  Medidos aqui (não conferidos contra nada):")
         print(f"    count = {total:,}")
         print(f"    soma  = {soma}")
+        print("\n  Para ancorar esta competência, meça a fonte de forma")
+        print("  independente e registre em controle_por_competencia:")
+        print(f"    python3 scripts/totais_controle.py --competencia {comp}")
 
     if falhas:
         # ZERO Parquet: nada é publicado quando um gate reprova
@@ -199,9 +210,14 @@ def main() -> int:
         json.dumps(manifesto, indent=2, ensure_ascii=False), encoding="utf-8"
     )
 
+    # Um packet que diz ACEITO com "count_confere": false lá dentro mente por
+    # omissão: quem lê o status não vê que o gate nem rodou. O estado passa a
+    # ser explícito. Auditoria de 16/09/2026, objeção #28.
     pacote = {
-        "status": "ACEITO",
+        "status": "ACEITO" if confere_controle else "ACEITO_SEM_ANCORA",
         "publicado": True,
+        "ancora": ctl["evidencia"] if confere_controle and "evidencia" in ctl
+                  else ("contracts/layout.yaml:controle" if confere_controle else None),
         "gates": {
             "rejeicoes_zero": True,
             "count_confere": confere_controle,
@@ -209,12 +225,18 @@ def main() -> int:
         },
         **manifesto,
     }
+    if not confere_controle:
+        pacote["aviso"] = (
+            f"Sem âncora medida para {comp}: os totais NÃO foram conferidos "
+            f"contra a fonte. Rode scripts/totais_controle.py --competencia "
+            f"{comp} e registre em controle_por_competencia."
+        )
     (BASE / "evidence" / f"bronze-{aaaamm}.json").write_text(
         json.dumps(pacote, indent=2, ensure_ascii=False), encoding="utf-8"
     )
 
-    print(f"\nBRONZE ACEITO · {total:,} linhas · {segundos}s")
-    print(f"  soma  : {soma}  {"(confere com o contrato)" if confere_controle else "(competencia nova)"}")
+    print(f"\nBRONZE {pacote['status']} · {total:,} linhas · {segundos}s")
+    print(f"  soma  : {soma}  {"(confere com a âncora)" if confere_controle else "(SEM ÂNCORA — não conferido)"}")
     print(f"  bytes : {arquivo.stat().st_size:,}")
     print(f"  sha256: {sha[:32]}…")
     return 0
