@@ -31,15 +31,23 @@ comparar contra nada e publicar `ACEITO`.
 
 ## Começar
 
+> 📖 **O passo a passo completo está em [`docs/MANUAL.md`](docs/MANUAL.md)** —
+> os 7 passos, o que conferir em cada um, as três armadilhas que já custaram
+> caro, e o que fazer quando um gate reprova. **Leia antes de rodar.**
+
 ```bash
 make init       # venv + dependências
 make fetch      # baixa a fonte, congela em 444, grava o sha256
 make perfil     # varre e mede: layout, domínios, cobertura
 make ancora     # mede count e soma direto da fonte congelada
 make contrato   # transfere o medido para o contrato (pede confirmação)
-make all        # fetch → bronze → silver → gold
+make all        # bronze → silver → gold
 make evals      # prova o resultado
 ```
+
+⚠️ **Entre `make ancora` e `make contrato` há trabalho manual**: 8 scripts
+vieram como semente e ainda falam da fonte original. O manual explica o que
+preservar e o que trocar em cada um.
 
 Requisitos: Python 3.12+.
 

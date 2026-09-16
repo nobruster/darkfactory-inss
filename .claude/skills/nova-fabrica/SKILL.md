@@ -45,19 +45,32 @@ $EDITOR .claude/skills/nova-fabrica/menu/fabricas.yaml
 # 2. gerar
 bash .claude/skills/nova-fabrica/scaffold.sh receita-cnpj
 
-# 3. entrar e medir — o contrato só ganha número aqui
+# 3. LER O MANUAL — ele sai junto, com os 7 passos e o que conferir
 cd ~/darkfactory-receita-cnpj
+less docs/MANUAL.md
+
+# 4. medir — o contrato só ganha número aqui
 make init
 make fetch
 make perfil          # varre a fonte; escreve evidence/_perfil-*.json
 make ancora          # mede count e soma direto da fonte congelada
+
+# 5. adaptar os 8 scripts semente (passo 5 do manual — o trabalho de verdade)
+
+# 6. destravar
 make contrato        # transfere o medido para o contrato (pede confirmação)
 
-# 4. agora sim
-make all
+# 7. agora sim
+make all && make evals
 ```
 
-**Entre o passo 2 e o 4 a fábrica não constrói.** É de propósito.
+**Até `make contrato`, a fábrica não constrói.** É de propósito.
+
+O `docs/MANUAL.md` sai junto e cobre o caminho inteiro: os 7 passos, o que
+conferir em cada um (o `make perfil` é para **ler**, não só rodar), as três
+armadilhas que passam pelo gate de soma sem acusar, e a tabela sintoma →
+causa. O `verificar_fabrica.py` **reprova** uma fábrica sem manual, ou com
+manual que não cubra algum dos 7 passos.
 
 ---
 
@@ -82,10 +95,12 @@ make all
 │   ├── eval_doutrina.py        congelados intactos, sha256, chmod 444
 │   ├── verificar_cercas.py     settings.json e gate.yaml concordam
 │   └── refrescar_checksums.py  única via sancionada de mexer no checksum
-├── docs/adrs/
-│   ├── 0001-leitura-posicional.md      semente — adapte ou supersede
-│   ├── 0002-decimal-nunca-float.md     semente
-│   └── 0003-ancora-por-competencia.md  semente (a lição do INSS)
+├── docs/
+│   ├── MANUAL.md               ★ como iniciar: 7 passos, o que conferir
+│   └── adrs/
+│       ├── 0001-leitura-posicional.md      semente — adapte ou supersede
+│       ├── 0002-decimal-nunca-float.md     semente
+│       └── 0003-ancora-por-particao.md     semente (a lição do INSS)
 ├── .claude/
 │   ├── settings.json           deny-list espelhando gate.yaml
 │   ├── agents/                 fabrica-architect, fabrica-reviewer

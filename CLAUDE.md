@@ -150,6 +150,17 @@ make ancora COMP=2025-12     # ~50s varrendo o ZIP
 
 ---
 
+## O manual
+
+**[`docs/MANUAL.md`](docs/MANUAL.md)** — como operar esta fábrica: rodar uma
+competência, ler o `make status`, o que fazer quando um gate reprova, e como
+mexer no contrato sem quebrar a cadeia de custódia.
+
+Toda fábrica gerada por `nova-fabrica` sai com o seu próprio manual, e o
+`verificar_fabrica.py` **reprova** uma que venha sem.
+
+---
+
 ## A skill `nova-fabrica` — uma fábrica para qualquer demanda
 
 Este projeto deixou de ser só o INSS: ele agora **gera fábricas**.

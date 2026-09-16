@@ -99,7 +99,27 @@ def main() -> int:
                 continue
             problemas.append(f"{p.relative_to(fab)}: placeholder {achados}")
 
-    # ── 5. as duas cercas concordam ──────────────────────────────────
+    # ── 5. o manual existe e cobre o caminho inteiro ─────────────────
+    # Uma fábrica sem manual entrega disciplina que ninguém sabe operar.
+    # Pior: os 8 scripts semente NÃO rodam como estão, e sem o manual não
+    # há nada dizendo isso.
+    manual = fab / "docs" / "MANUAL.md"
+    if not manual.exists():
+        problemas.append("sem docs/MANUAL.md — ninguém sabe por onde começar")
+    else:
+        txt = manual.read_text(encoding="utf-8")
+        for passo in ("make init", "make fetch", "make perfil", "make ancora",
+                      "make contrato", "make all", "make evals"):
+            if passo not in txt:
+                problemas.append(f"MANUAL.md não cobre `{passo}`")
+        # O manual tem de avisar sobre as sementes e sobre o ~?, senão
+        # entrega uma fábrica que parece pronta e não está.
+        if "SEMENTE" not in txt:
+            problemas.append("MANUAL.md não avisa que há scripts a adaptar")
+        if "ACEITO_SEM_ANCORA" not in txt:
+            problemas.append("MANUAL.md não explica ACEITO_SEM_ANCORA (~?)")
+
+    # ── 6. as duas cercas concordam ──────────────────────────────────
     cercas = fab / "scripts" / "verificar_cercas.py"
     if cercas.exists():
         r = subprocess.run([sys.executable, "scripts/verificar_cercas.py"],
@@ -109,7 +129,7 @@ def main() -> int:
     else:
         avisos.append("sem verificar_cercas.py")
 
-    # ── 6. settings.json é JSON válido ───────────────────────────────
+    # ── 7. settings.json é JSON válido ───────────────────────────────
     st = fab / ".claude" / "settings.json"
     if st.exists():
         try:
@@ -130,7 +150,7 @@ def main() -> int:
         return 1
 
     print("  OK · Makefile coerente · contrato NAO_MEDIDO · gate recusa · "
-          "cercas concordam")
+          "manual completo · cercas concordam")
     return 0
 
 

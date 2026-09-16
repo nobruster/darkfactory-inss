@@ -140,6 +140,7 @@ subs = {
     "LEITURA": fonte.get("leitura", "posicional"),
     "PARTICAO": fonte.get("particao", "competencia"),
     "PARTICAO_EXEMPLO": fonte.get("particao_exemplo", "2026-01"),
+    "DESTINO_EXEMPLO": f"~/darkfactory-{slug}",
     "GRAO_SILVER": ylist(f.get("grao_silver")),
     "GRAO_GOLD": ylist(f["grao_gold"]),
     "COLUNAS_MONETARIAS": ylist(f.get("colunas_monetarias")),
@@ -188,6 +189,7 @@ MAPA_TPL = {
     "promover_medicao.py.tpl": "scripts/promover_medicao.py",
     "CLAUDE.md.tpl": "CLAUDE.md",
     "README.md.tpl": "README.md",
+    "MANUAL.md.tpl": "docs/MANUAL.md",
     "gate.yaml.tpl": ".cvg/gate.yaml",
     "settings.json.tpl": ".claude/settings.json",
     "qualidade.yml.tpl": ".github/workflows/qualidade.yml",
@@ -226,6 +228,7 @@ HERDADOS = {
     "scripts/build_gold.py": "scripts/build_gold.py",
     "scripts/eval_doutrina.py": "scripts/eval_doutrina.py",
     "tests/test_ancora.py": "tests/test_ancora.py",
+    "tests/test_manual.py": "tests/test_manual.py",
 }
 
 # Estes precisam de adaptação à fonte nova. O aviso é mais forte: não é só
@@ -356,12 +359,21 @@ Próximo passo:
 echo ""
 echo "  fábrica criada e versionada em ${DESTINO}"
 echo ""
-echo "  Próximo passo — a fábrica não constrói até você medir:"
+echo "  ┌──────────────────────────────────────────────────────────┐"
+echo "  │  LEIA PRIMEIRO:  docs/MANUAL.md                          │"
+echo "  │  Os 7 passos, o que conferir em cada um, e as três       │"
+echo "  │  armadilhas que passam pelo gate de soma sem acusar.     │"
+echo "  └──────────────────────────────────────────────────────────┘"
 echo ""
 echo "    cd ${DESTINO}"
+echo "    less docs/MANUAL.md"
+echo ""
+echo "  A fábrica não constrói até você medir a fonte:"
+echo ""
 echo "    make init"
 echo "    make fetch     # baixa e congela a fonte"
-echo "    make perfil    # mede layout, domínios, cobertura"
+echo "    make perfil    # mede layout — LEIA a saída, não só rode"
 echo "    make ancora    # mede count e soma direto da fonte"
-echo "    make contrato  # transfere o medido para o contrato"
+echo "    (adaptar os 8 scripts semente — ver passo 5 do manual)"
+echo "    make contrato  # destrava a fábrica"
 echo ""

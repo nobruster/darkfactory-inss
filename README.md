@@ -35,6 +35,10 @@ Corrigir em silêncio destrói a prova de que a origem tem um problema.
 
 ## Como rodar
 
+> 📖 **O manual de operação está em [`docs/MANUAL.md`](docs/MANUAL.md)** —
+> rodar uma competência nova, o que fazer quando um gate reprova, como mexer
+> no contrato sem quebrar a cadeia de custódia.
+
 ```bash
 make init                      # venv + dependências
 make all                       # fetch -> bronze -> silver -> gold
