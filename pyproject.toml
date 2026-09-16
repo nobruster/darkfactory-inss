@@ -34,9 +34,18 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-# scripts de perfilamento são exploratórios por natureza
-"scripts/perfil_cobertura.py" = ["T201"]
-"scripts/totais_controle.py" = ["T201"]
+# Scripts de perfilamento: rodam uma vez, medem, imprimem e morrem.
+# `E701`/`E702` (statement na mesma linha) e `SIM115` (open sem context
+# manager) são legítimos aqui — o processo termina logo depois.
+# O que NÃO se ignora em lugar nenhum: F821 (nome indefinido) e B (bugs).
+"scripts/perfil_cobertura.py" = ["E701", "E702", "SIM115"]
+"scripts/totais_controle.py" = ["E701", "E702", "SIM115"]
+
+# Lambda de conveniência para consulta DuckDB: `q = lambda s: ...`.
+# Trocar por def aqui tornaria o código mais longo sem ficar mais claro.
+"scripts/build_silver.py" = ["E731"]
+"scripts/build_gold.py" = ["E731"]
+"scripts/eval_doutrina.py" = ["E731"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

@@ -4,7 +4,13 @@ COMP ?= 2026-01
 # Toda etapa é um script Python. O Makefile só encadeia — nada de curl, sed
 # ou lógica aqui dentro: o que decide fica versionado e testável.
 
-.PHONY: help init fetch check bronze silver gold all status ranking perfil contrato clean
+ifneq (,$(wildcard .env))
+include .env
+export
+endif
+
+.PHONY: help init fetch check bronze silver gold all status ranking perfil contrato clean \
+        lint test evals agentes qa
 
 help: ## lista os alvos
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -15,7 +21,7 @@ help: ## lista os alvos
 init: ## cria o venv e instala as dependências
 	@python3 -m venv .venv
 	@$(PY) -m pip install -q --upgrade pip
-	@$(PY) -m pip install -q duckdb pyarrow pyyaml openpyxl
+	@$(PY) -m pip install -q duckdb "pyarrow>=25,<26" pyyaml openpyxl ruff pytest
 	@echo "ambiente pronto"
 
 fetch: ## baixa a fonte e congela (não rebaixa o que já existe)
@@ -50,6 +56,26 @@ status: ## estado dos packets de todas as competências
 
 ranking: ## top 10 bancos por valor pago
 	@$(PY) scripts/ranking.py --competencia $(COMP)
+
+# ── qualidade ────────────────────────────────────────────────
+
+lint: ## ruff sobre ingestion, scripts e tests
+	@$(PY) -m ruff check ingestion scripts tests
+
+test: ## testes unitários (não precisam de lakehouse)
+	@$(PY) -m pytest tests/ -q -m "not integracao"
+
+evals: ## as 3 evals de integração (exigem lakehouse construído)
+	@$(PY) scripts/eval_packets.py   --competencia $(COMP)
+	@$(PY) scripts/eval_coerencia.py --competencia $(COMP)
+	@$(PY) scripts/eval_doutrina.py  --competencia $(COMP)
+
+agentes: ## gate dos agentes em .claude/agents/
+	@bash .claude/skills/novo-agente/quality-gate.sh --strict
+
+qa: lint test agentes ## tudo que não precisa de dados — o mesmo que o CI roda
+	@echo ""
+	@echo "  qa OK — para provar os dados: make evals COMP=$(COMP)"
 
 clean: ## DESTRUTIVO: apaga landing e lakehouse desta competência (a fonte fica)
 	@test "$(CONFIRM)" = "clean-runtime" || { echo "rerun com CONFIRM=clean-runtime"; exit 2; }

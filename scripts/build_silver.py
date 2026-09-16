@@ -208,7 +208,8 @@ def main() -> int:
     print(f"  soma            : {soma_silver}  (confere com Bronze)")
     print(f"  rótulos únicos  : {rotulos}")
     print(f"  DF-INSS-004     : {divergentes} divergências de nomenclatura")
-    if orfaos: print(f"  DF-INSS-003     : órfãos {orfaos} · {nulos} linhas · CONTRACT_AMBIGUITY")
+    if orfaos:
+        print(f"  DF-INSS-003     : órfãos {orfaos} · {nulos} linhas · CONTRACT_AMBIGUITY")
     return 0
 
 

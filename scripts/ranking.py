@@ -56,7 +56,7 @@ def main() -> int:
     print(f"\n  Concentração bancária · {comp} · {escopo}")
     print(f"  total pago: R$ {total:,.2f}\n")
     acumulado = 0
-    for i, (cod, nome, qtd, valor) in enumerate(linhas, 1):
+    for i, (cod, nome, _qtd, valor) in enumerate(linhas, 1):
         pct = 100 * float(valor) / float(total)
         acumulado += pct
         print(f"  {i:>2}. {cod}  {nome:22} R$ {valor:>17,.2f}  {pct:>5.2f}%")

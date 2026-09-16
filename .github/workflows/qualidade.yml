@@ -1,0 +1,120 @@
+name: qualidade
+
+# Roda sem dados: não há fonte (575 MB) nem lakehouse no CI.
+# O que se prova aqui é o que NÃO depende de execução — lint, testes
+# unitários, integridade do contrato e conformidade dos agentes.
+#
+# As evals de integração rodam localmente, contra o lakehouse real.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  codigo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: instalar
+        run: |
+          python -m pip install -q --upgrade pip
+          pip install -q ruff pytest pyyaml duckdb "pyarrow>=25,<26" openpyxl
+
+      - name: lint
+        run: ruff check ingestion scripts tests
+
+      - name: testes unitários
+        run: pytest tests/ -q -m "not integracao"
+
+  contrato:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q pyyaml
+
+      - name: contrato é YAML válido e completo
+        run: |
+          python - <<'PY'
+          import sys, yaml, pathlib
+          c = yaml.safe_load(pathlib.Path("contracts/layout.yaml").read_text(encoding="utf-8"))
+
+          erros = []
+          if len(c["colunas"]) != c["fonte"]["colunas"]:
+              erros.append(f"declara {c['fonte']['colunas']} colunas, define {len(c['colunas'])}")
+
+          # posições contíguas a partir de 0 — leitura é posicional (ADR 0001)
+          pos = sorted(col["pos"] for col in c["colunas"])
+          if pos != list(range(len(pos))):
+              erros.append(f"posições não são contíguas: {pos}")
+
+          # todo defeito catalogado precisa de classificação
+          for d in c["defeitos_fonte"]:
+              if "classificacao" not in d:
+                  erros.append(f"{d['id']} sem classificacao")
+
+          # os totais de controle são a âncora — não podem sumir
+          for campo in ("count_linhas", "sum_vl_liquido"):
+              if campo not in c["controle"]:
+                  erros.append(f"controle sem {campo}")
+
+          if erros:
+              print("CONTRATO INVÁLIDO")
+              for e in erros:
+                  print(f"  - {e}")
+              sys.exit(1)
+          print(f"contrato v{c['version']} OK · {len(c['colunas'])} colunas · "
+                f"{len(c['defeitos_fonte'])} defeitos")
+          PY
+
+      - name: dicionário oficial íntegro
+        run: |
+          cd contracts && sha256sum -c CHECKSUMS.txt
+
+  agentes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: gate dos agentes
+        run: bash .claude/skills/novo-agente/quality-gate.sh --strict
+
+  congelado:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: pasta congelada só muda com ADR
+        run: |
+          # num PR, mudança em contracts/ ou docs/adrs/ exige ADR novo
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "não é PR — pulando"; exit 0
+          fi
+          BASE="${{ github.event.pull_request.base.sha }}"
+          MUDOU=$(git diff --name-only "$BASE" HEAD -- contracts/ _raw/ | head -20)
+          if [ -z "$MUDOU" ]; then
+            echo "nada mudou em pasta congelada"; exit 0
+          fi
+          echo "pasta congelada alterada:"
+          echo "$MUDOU" | sed 's/^/  /'
+          ADR_NOVO=$(git diff --name-only --diff-filter=A "$BASE" HEAD -- docs/adrs/ | head -5)
+          if [ -z "$ADR_NOVO" ]; then
+            echo ""
+            echo "BLOQUEIO: mudança em pasta congelada sem ADR novo."
+            echo "Ajustar o juiz para um teste passar é trapaça, não conserto."
+            echo "Se a mudança é deliberada, escreva o ADR que a justifica."
+            exit 1
+          fi
+          echo "ADR que justifica:"
+          echo "$ADR_NOVO" | sed 's/^/  /'

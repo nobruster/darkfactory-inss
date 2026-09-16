@@ -1,0 +1,62 @@
+---
+description: Dark Factory INSS — doutrina, agentes e pastas congeladas
+globs: "**/*"
+alwaysApply: true
+---
+
+# Dark Factory INSS
+
+Fábrica de dados sob contrato, gates e evidência. **Antes de escrever código,
+leia `CLAUDE.md`** — ele traz a doutrina, o estado e os defeitos catalogados.
+
+## A regra que não se negocia
+
+> Sem juiz, não se constrói. Preserve o defeito. Recuse o lote.
+> Verde pelo motivo certo.
+
+A fonte tem defeitos reais. A fábrica **classifica**, nunca corrige. Quando um
+gate reprova, o trabalho é investigar — **nunca ajustar a expectativa**.
+
+## Congelado — escrita proibida
+
+```
+_raw/         bytes originais (chmod 444 + sha256)
+contracts/    O JUIZ
+docs/adrs/    decisões vinculantes — revisão se faz com ADR novo
+```
+
+## Antes de qualquer mudança
+
+| Arquivo | Responde |
+|---|---|
+| `CLAUDE.md` | doutrina, estado, armadilhas |
+| `contracts/layout.yaml` | colunas, domínios, regras de aceitação |
+| `docs/adrs/*.md` | **por que** cada decisão foi tomada |
+| `AGENTS.md` | qual agente usar para quê |
+
+## BLOCKERs
+
+| Achado | Fonte |
+|---|---|
+| `float` em caminho monetário | ADR 0002 |
+| tolerância em comparação de dinheiro | ADR 0002 |
+| agrupar espécie/banco por **nome** em vez de código | ADR 0003 · DF-INSS-002 |
+| ler coluna por nome em vez de posição | ADR 0001 · DF-INSS-001 |
+| inventar descrição para código órfão | DF-INSS-003 — escala |
+| tratar banco `998` como instituição financeira | ADR 0005 |
+| deduplicar linhas | base anonimizada (LGPD) |
+| remover ou afrouxar gate | a doutrina inteira |
+
+## Provar que funcionou
+
+```bash
+.venv/bin/python scripts/eval_packets.py   --competencia AAAA-MM
+.venv/bin/python scripts/eval_coerencia.py --competencia AAAA-MM
+.venv/bin/python scripts/eval_doutrina.py  --competencia AAAA-MM
+.venv/bin/ruff check ingestion scripts tests && .venv/bin/pytest -q
+```
+
+Não afirme que passou — rode e mostre a saída.
+
+---
+*Ponteiro, não cópia. A fonte de verdade é `.claude/agents/` e `docs/adrs/`.*
