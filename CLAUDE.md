@@ -64,7 +64,7 @@ Protegido por `.claude/settings.json` e `.cvg/gate.yaml`.
 
 ---
 
-## Os 4 defeitos catalogados
+## Os 5 defeitos catalogados
 
 | ID | Defeito | Tratamento |
 |---|---|---|
@@ -72,6 +72,7 @@ Protegido por `.claude/settings.json` e `.cvg/gate.yaml`.
 | `DF-INSS-002` | truncamento em 20 chars funde 34 de 65 códigos | join pelo **código**, nunca pelo nome |
 | `DF-INSS-003` | código 67 na fonte, fora do dicionário oficial | complemento separado; XLSX oficial **intocado** |
 | `DF-INSS-004` | fonte × dicionário divergem em 29 códigos | ambas preservadas (`especie_nome` e `especie_nome_fonte`) |
+| `DF-INSS-005` | duas UFs por registro: a do município e a do beneficiário | são fatos distintos; o código de município é chave sozinho |
 
 ### Por que o DF-INSS-002 importa
 
@@ -99,7 +100,7 @@ não resolve.
 
 ---
 
-## Os 5 ADRs
+## Os 6 ADRs
 
 | # | Decisão |
 |---|---|
@@ -107,7 +108,45 @@ não resolve.
 | [0002](docs/adrs/0002-decimal-nunca-float.md) | decimal, nunca float |
 | [0003](docs/adrs/0003-especie-join-pelo-codigo.md) | espécie pelo código |
 | [0004](docs/adrs/0004-duas-nomenclaturas-preservadas.md) | as duas nomenclaturas preservadas |
-| [0005](docs/adrs/0005-inss-direto-fora-do-ranking.md) | o INSS não é banco (sentinela 998) |
+| [0005](docs/adrs/0005-inss-direto-fora-do-ranking.md) | o INSS não é banco (sentinelas 996 e 998) |
+| [0006](docs/adrs/0006-auditoria-por-tres-modelos.md) | âncora por competência; gate desligado é visível |
+
+---
+
+## ⚠ A auditoria de 16/09/2026 — leia antes de confiar num packet
+
+Três modelos (Opus, Sonnet, Haiku) auditaram a estrutura, sem ver o raciocínio
+uns dos outros. Nove objeções bloqueantes. O resumo do Opus:
+
+> *a fábrica olha para espécie com microscópio e para o resto não olha.*
+
+**A pior (#28).** Os gates de total se desligavam quando a competência não era
+a declarada no contrato — e o packet continuava dizendo `ACEITO`, com
+`"count_confere": false` escondido dentro. **82 milhões de linhas publicadas
+sem nunca terem sido conferidas contra a fonte.** Os dados estavam certos (a
+conferência retroativa provou), mas ninguém sabia disso: faltava a prova.
+
+O que mudou:
+
+- `controle_por_competencia:` no contrato — **cada** competência tem âncora
+  medida direto do ZIP por `totais_controle.py`, antes e independente do Bronze
+- sem âncora, publica-se `ACEITO_SEM_ANCORA`, nunca `ACEITO` silencioso
+- `eval_packets` reprova qualquer `ACEITO` com gate de âncora `false`
+- o Gold confere contra a **fonte**, não só contra o Silver
+
+**Uma das nove foi refutada** (a #4, sobre chave de município). O número
+estava certo, a conclusão invertida — e a "correção" teria partido São Paulo
+em 27 municípios com o total continuando a bater. Ver
+[ADR 0006](docs/adrs/0006-auditoria-por-tres-modelos.md).
+
+> **Objeção de auditoria é hipótese, não veredito. Meça antes de corrigir.**
+
+### Competência nova exige âncora
+
+```bash
+make ancora COMP=2025-12     # ~50s varrendo o ZIP
+# registre em controle_por_competencia: (exige ADR — o contrato é congelado)
+```
 
 ---
 

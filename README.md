@@ -42,12 +42,26 @@ make status                    # o que rodou, em que competência
 make ranking                   # top 10 bancos
 ```
 
-Outra competência é só trocar `COMP`:
+Outra competência troca `COMP` — mas antes precisa de **âncora**:
 
 ```bash
-make all COMP=2026-02
+make fetch  COMP=2026-02       # baixa e congela a fonte
+make ancora COMP=2026-02       # ~50s medindo count e soma direto do ZIP
+                               # registre o resultado em
+                               # controle_por_competencia: (exige ADR)
+make all    COMP=2026-02
 make ranking COMP=2026-02 --uf "São Paulo"
 ```
+
+**Sem âncora, a competência publica como `ACEITO_SEM_ANCORA`** — os dados
+saem, mas nenhum gate de total rodou, e o `make status` marca `~?` em vez de
+`OK`. Não é bloqueio, é honestidade: até 16/09/2026 a fábrica publicava esse
+mesmo estado chamando-o de `ACEITO`, e 82 milhões de linhas foram para o Gold
+sem nunca terem sido conferidas contra a fonte. Ver
+[ADR 0006](docs/adrs/0006-auditoria-por-tres-modelos.md).
+
+A âncora é medida **antes e independente** do Bronze. Bronze conferir contra
+si mesmo não é gate.
 
 **Cada etapa é um script Python** — o Makefile só encadeia. O download nunca
 rebaixa o que já está no disco:

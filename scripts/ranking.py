@@ -43,6 +43,17 @@ def main() -> int:
         params,
     ).fetchone()[0]
 
+    # sum() sobre zero linhas devolve NULL. Sem esta guarda, a formatação
+    # abaixo estoura com TypeError e a conexão fica pendurada.
+    if total is None:
+        ufs = [r[0] for r in con.execute(
+            "select distinct uf_residencia from gold_concentracao_bancaria order by 1"
+        ).fetchall()]
+        con.close()
+        print(f"\n  sem dados para UF {args.uf!r} em {comp}")
+        print(f"  UFs disponíveis: {', '.join(ufs)}\n")
+        return 1
+
     linhas = con.execute(
         f"""select banco_codigo, max(banco_nome), sum(qtd_beneficios), sum(vl_total)
             from gold_concentracao_bancaria

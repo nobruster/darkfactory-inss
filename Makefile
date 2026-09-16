@@ -10,7 +10,7 @@ export
 endif
 
 .PHONY: help init fetch check bronze silver gold all status ranking perfil contrato clean \
-        lint test evals agentes qa
+        lint test evals agentes qa ancora cercas conferir
 
 help: ## lista os alvos
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -34,11 +34,24 @@ refetch: ## rebaixa deliberadamente (reprocessamento)
 	@$(PY) ingestion/fetch_fonte.py --competencia $(COMP) --force
 
 perfil: ## perfila a fonte (cobertura + totais de controle)
-	@$(PY) scripts/perfil_cobertura.py
-	@$(PY) scripts/totais_controle.py
+	@$(PY) scripts/perfil_cobertura.py --competencia $(COMP)
+	@$(PY) scripts/totais_controle.py --competencia $(COMP)
 
-contrato: ## valida o contrato contra os dados reais
-	@$(PY) scripts/validar_contrato.py
+ancora: ## mede a âncora desta competência direto da fonte (~50s)
+	@$(PY) scripts/totais_controle.py --competencia $(COMP)
+	@echo ""
+	@echo "  registre o resultado em controle_por_competencia: do contrato"
+	@echo "  (exige ADR — o contrato é congelado)"
+
+cercas: ## as duas cercas de escrita concordam entre si?
+	@$(PY) scripts/verificar_cercas.py
+
+conferir: ## confere um Bronze já publicado contra a âncora (auditoria)
+	@$(PY) scripts/ancorar_bronze.py --competencia $(COMP)
+
+contrato: ## valida domínios e dicionário contra os dados reais
+	@$(PY) scripts/extrair_dicionario.py --check
+	@$(PY) scripts/validar_contrato.py --competencia $(COMP)
 
 bronze: ## fonte -> landing Parquet (gates: rejeições, count, soma)
 	@$(PY) ingestion/ingest_bronze.py --competencia $(COMP)
@@ -49,7 +62,9 @@ silver: ## bronze -> grão conformado (gates: count, soma, espécie)
 gold: ## silver -> concentração bancária por UF (7 gates)
 	@$(PY) scripts/build_gold.py --competencia $(COMP)
 
-all: fetch bronze silver gold ## a linha completa, do download ao Gold
+all: fetch contrato bronze silver gold ## a linha completa, do download ao Gold
+	@echo ""
+	@echo "  prove o resultado: make evals COMP=$(COMP)"
 
 status: ## estado dos packets de todas as competências
 	@$(PY) scripts/status.py
@@ -66,14 +81,12 @@ test: ## testes unitários (não precisam de lakehouse)
 	@$(PY) -m pytest tests/ -q -m "not integracao"
 
 evals: ## as 3 evals de integração (exigem lakehouse construído)
-	@$(PY) scripts/eval_packets.py   --competencia $(COMP)
-	@$(PY) scripts/eval_coerencia.py --competencia $(COMP)
-	@$(PY) scripts/eval_doutrina.py  --competencia $(COMP)
+	@bash scripts/rodar_evals.sh $(COMP)
 
 agentes: ## gate dos agentes em .claude/agents/
 	@bash .claude/skills/novo-agente/quality-gate.sh --strict
 
-qa: lint test agentes ## tudo que não precisa de dados — o mesmo que o CI roda
+qa: lint test agentes cercas ## tudo que não precisa de dados — o mesmo que o CI roda
 	@echo ""
 	@echo "  qa OK — para provar os dados: make evals COMP=$(COMP)"
 
