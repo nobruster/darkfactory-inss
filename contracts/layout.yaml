@@ -11,7 +11,11 @@
 # TODO número neste arquivo foi MEDIDO na fonte, não estimado.
 # Evidências: evidence/_perfil-cobertura.json · evidence/_totais-controle.json
 
-version: 3
+version: 4
+# v4 (17/09/2026) — âncora de 2025-12 (ADR 0007). Primeira competência
+# ancorada sob a regra do ADR 0006, e a que trouxe o degrau de R$ 4,3 bi
+# entre dezembro e janeiro — medido, não explicado.
+#
 # v3 (16/09/2026) — auditoria por três modelos independentes (Opus, Sonnet,
 # Haiku) contra a estrutura da fábrica. 9 objeções bloqueantes; 8 confirmadas
 # por medição e corrigidas, 1 REFUTADA (ver DF-INSS-005/armadilha_inversa).
@@ -67,6 +71,20 @@ controle:
 # Competência sem âncora aqui NÃO publica como ACEITO — publica como
 # ACEITO_SEM_ANCORA, que é um estado visível, não um silêncio.
 controle_por_competencia:
+  # ⚠ 2025-12 tem MAIS benefícios que 2026-01 (+69.390) e R$ 4,33 bi a MENOS
+  #   (−5,51%). A média cai de R$ 1.888,79 para R$ 1.781,71 (−5,67%), e as
+  #   três competências de 2026 têm média idêntica a menos de 1 real.
+  #   Degrau limpo, não ruído: tem a forma de reajuste anual do piso, que
+  #   entra em janeiro. NÃO CONFIRMADO — ver ADR 0007. Não é defeito da
+  #   fábrica: a âncora foi medida na fonte, não produzida pelo pipeline.
+  "2025-12":
+    count_linhas: 41641943
+    sum_vl_liquido: "74193966071.52"
+    min_vl_liquido: "0.00"
+    max_vl_liquido: "150042.84"
+    linhas_invalidas: 0
+    medido_em: "2026-09-17"
+    evidencia: "evidence/_totais-202512.json"
   "2026-01":
     count_linhas: 41572553
     sum_vl_liquido: "78521752562.12"
@@ -92,7 +110,8 @@ controle_por_competencia:
     medido_em: "2026-09-16"
     evidencia: "evidence/_totais-202603.json"
 
-# O máximo de 2026-01 (183.725,76) é 3× o das outras duas competências.
+# O máximo de 2026-01 (183.725,76) é 3× o de fevereiro e março, e 2025-12
+# tem outro valor ainda (150.042,84) — quatro competências, três faixas.
 # Não é erro: é um outlier real de janeiro. Mas mostra por que faixa medida
 # numa competência não vira regra para as outras — ver objeção #14.
 
