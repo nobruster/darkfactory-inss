@@ -21,16 +21,36 @@ expectativa para fazer passar.** Essa é a única coisa proibida sem exceção.
 
 ---
 
-## Estado em 16/09/2026
+## Estado em 17/09/2026
 
-| Competência | Linhas | Valor | Agregados |
+| Competência | Linhas | Valor | Média |
 |---|---|---|---|
-| 2026-01 | 41.572.553 | R$ 78.521.752.562,12 | 418 |
-| 2026-02 | 41.522.152 | R$ 78.441.374.955,39 | 437 |
-| 2026-03 | 41.719.140 | R$ 78.771.556.568,72 | 465 |
+| **2025-12** | 41.641.943 | **R$ 74.193.966.071,52** | **R$ 1.781,71** |
+| 2026-01 | 41.572.553 | R$ 78.521.752.562,12 | R$ 1.888,79 |
+| 2026-02 | 41.522.152 | R$ 78.441.374.955,39 | R$ 1.889,15 |
+| 2026-03 | 41.719.140 | R$ 78.771.556.568,72 | R$ 1.888,14 |
 
-**Pendentes:** 2025-12, 2025-11, 2025-10
+**Pendentes:** 2025-11, 2025-10
 **Resultado:** TOP 4 bancos concentram ~75,8% — estrutural, varia em centésimos.
+
+### ⚠ O degrau de dezembro — NÃO é regressão
+
+2025-12 tem **mais benefícios** que janeiro (+69.390) e **R$ 4,33 bi a menos**
+(−5,51%). A média cai 5,67%, e as três competências de 2026 têm média idêntica
+a menos de 1 real.
+
+Degrau limpo, não ruído. Tem a forma de **reajuste anual do piso** (entra em
+janeiro) — mas isso **não foi confirmado**: não conferi o salário mínimo, não
+medi quantos benefícios estão no piso, não descartei mudança de composição.
+
+Classificação: `UNRESOLVED`. Ver [ADR 0007](docs/adrs/0007-ancora-2025-12.md).
+
+**Não é defeito da fábrica:** a âncora foi medida na fonte, independente do
+pipeline. Se o pipeline errasse, o gate reprovaria — e ele passou.
+
+> **Lacuna conhecida:** nenhum gate compara competências. A fábrica pega um
+> centavo errado *dentro* de uma competência e não vê R$ 4,3 bi de degrau
+> *entre* duas.
 
 ---
 
@@ -100,7 +120,7 @@ não resolve.
 
 ---
 
-## Os 6 ADRs
+## Os 7 ADRs
 
 | # | Decisão |
 |---|---|
@@ -110,6 +130,7 @@ não resolve.
 | [0004](docs/adrs/0004-duas-nomenclaturas-preservadas.md) | as duas nomenclaturas preservadas |
 | [0005](docs/adrs/0005-inss-direto-fora-do-ranking.md) | o INSS não é banco (sentinelas 996 e 998) |
 | [0006](docs/adrs/0006-auditoria-por-tres-modelos.md) | âncora por competência; gate desligado é visível |
+| [0007](docs/adrs/0007-ancora-2025-12.md) | âncora de 2025-12 e o degrau de R$ 4,3 bi (UNRESOLVED) |
 
 ---
 

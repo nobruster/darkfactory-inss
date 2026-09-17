@@ -1,0 +1,36 @@
+{
+  "status": "ACEITO",
+  "publicado": true,
+  "ancora": "evidence/_totais-202512.json",
+  "gates": {
+    "rejeicoes_zero": true,
+    "count_confere": true,
+    "soma_confere": true
+  },
+  "competencia": "2025-12",
+  "gerado_em": "2026-09-17T14:59:57.030211+00:00",
+  "fonte_sha256": "9d6565875e3e1f8f243de2963e222d9414fdf22dfe0c3cb59118854ee2f34527",
+  "parquet_sha256": "986ed3b9e30341022aae503d89d8f2b9ca26f989eaf864488cb6027c5d615727",
+  "parquet_bytes": 305845303,
+  "linhas": 41641943,
+  "sum_vl_liquido": "74193966071.52",
+  "colunas": [
+    "despacho",
+    "sexo",
+    "clientela",
+    "tipo_beneficio",
+    "uf_residencia",
+    "meio_pagamento",
+    "banco",
+    "mun_pagto",
+    "mun_residencia",
+    "vl_liquido",
+    "ramo_atividade",
+    "dt_credito",
+    "especie_codigo",
+    "especie_nome_truncado"
+  ],
+  "blocos": 21,
+  "segundos": 118,
+  "contrato_versao": 4
+}
