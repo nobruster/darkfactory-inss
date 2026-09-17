@@ -70,7 +70,7 @@ def main() -> int:
         print(f"sem Bronze publicado para {comp}")
         return 1
 
-    t0 = time.time()
+    t0 = time.monotonic()
 
     # 1. o Parquet ainda é o que foi publicado?
     registro = BASE / "landing" / comp / "bronze.parquet.sha256"
@@ -141,7 +141,7 @@ def main() -> int:
         },
         "resultado": "CONFERE" if not divergencias else "DIVERGE",
         "divergencias": divergencias,
-        "segundos": round(time.time() - t0),
+        "segundos": round(time.monotonic() - t0),
     }
     destino = BASE / "evidence" / f"bronze-{aaaamm}-conferencia.json"
     destino.write_text(json.dumps(saida, indent=2, ensure_ascii=False),

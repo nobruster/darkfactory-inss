@@ -42,7 +42,7 @@ def main() -> int:
         print("sem Silver — rode scripts/build_silver.py primeiro")
         return 1
 
-    t0 = time.time()
+    t0 = time.monotonic()
     con = duckdb.connect(str(db))
 
     con.execute("drop table if exists gold_concentracao_bancaria")
@@ -171,7 +171,7 @@ def main() -> int:
     if monetarias_float:
         falhas.append(f"coluna monetária não-DECIMAL: {monetarias_float} (ADR 0002)")
 
-    segundos = round(time.time() - t0)
+    segundos = round(time.monotonic() - t0)
 
     if falhas:
         con.execute("drop table if exists gold_concentracao_bancaria")

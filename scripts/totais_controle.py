@@ -48,7 +48,7 @@ def main() -> int:
     invalidas = 0
     menor: Decimal | None = None
     maior: Decimal | None = None
-    t0 = time.time()
+    t0 = time.monotonic()
 
     with zipfile.ZipFile(fonte) as z:
         membro = z.namelist()[0]
@@ -73,7 +73,7 @@ def main() -> int:
                 if maior is None or valor > maior:
                     maior = valor
                 if total % 10_000_000 == 0:
-                    print(f"  {total:,} linhas · {time.time() - t0:.0f}s", flush=True)
+                    print(f"  {total:,} linhas · {time.monotonic() - t0:.0f}s", flush=True)
 
     saida = {
         "competencia": comp,
@@ -82,7 +82,7 @@ def main() -> int:
         "sum_vl_liquido": str(soma),
         "min_vl_liquido": str(menor),
         "max_vl_liquido": str(maior),
-        "segundos": round(time.time() - t0),
+        "segundos": round(time.monotonic() - t0),
     }
     destino = BASE / "evidence" / f"_totais-{aaaamm}.json"
     destino.write_text(json.dumps(saida, indent=2), encoding="utf-8")

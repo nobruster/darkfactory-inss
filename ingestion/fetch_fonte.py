@@ -62,7 +62,7 @@ def main() -> int:
     destino = raw / f"fonte-{aaaamm}.zip"
     parcial = raw / f".fonte-{aaaamm}.parcial"
 
-    t0 = time.time()
+    t0 = time.monotonic()
     falhas: list[str] = []
 
     # ── NUNCA rebaixar o que já está no disco ────────────────────────────
@@ -178,7 +178,7 @@ def main() -> int:
             "membro_unico": True,
             "congelado_444": True,
         },
-        "segundos": round(time.time() - t0),
+        "segundos": round(time.monotonic() - t0),
     }
     (BASE / "evidence" / f"fetch-{aaaamm}.json").write_text(
         json.dumps(pacote, indent=2, ensure_ascii=False), encoding="utf-8")

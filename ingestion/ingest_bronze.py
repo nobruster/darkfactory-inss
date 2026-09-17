@@ -94,7 +94,7 @@ def main() -> int:
     total = 0
     soma = Decimal("0")
     parte = 0
-    t0 = time.time()
+    t0 = time.monotonic()
     escritor = None
 
     def descarregar() -> None:
@@ -133,13 +133,13 @@ def main() -> int:
                 rejeicoes.append({"linha": n, "motivo": "vl_liquido_ilegivel"})
             if total % LOTE == 0:
                 descarregar()
-                print(f"  {total:,} linhas · {time.time() - t0:.0f}s", flush=True)
+                print(f"  {total:,} linhas · {time.monotonic() - t0:.0f}s", flush=True)
 
     descarregar()
     if escritor is not None:
         escritor.close()
 
-    segundos = round(time.time() - t0)
+    segundos = round(time.monotonic() - t0)
 
     # ── gates do contrato ────────────────────────────────────────────────
     # A estrutura (14 colunas, zero rejeição) vale para TODA competência.

@@ -45,7 +45,7 @@ def main() -> int:
     bancos: collections.Counter = collections.Counter()
     especies: collections.Counter = collections.Counter()
     total = 0
-    t0 = time.time()
+    t0 = time.monotonic()
 
     with zipfile.ZipFile(fonte) as z:
         membro = z.namelist()[0]
@@ -61,7 +61,7 @@ def main() -> int:
                 especies[partes[12].strip()] += 1
                 total += 1
                 if total % 5_000_000 == 0:
-                    print(f"  {total:,} linhas · {time.time() - t0:.0f}s · "
+                    print(f"  {total:,} linhas · {time.monotonic() - t0:.0f}s · "
                           f"UFs={len(ufs)}", flush=True)
 
     saida = {
@@ -70,7 +70,7 @@ def main() -> int:
         "ufs": dict(ufs),
         "bancos": dict(bancos),
         "especies": dict(especies),
-        "segundos": round(time.time() - t0),
+        "segundos": round(time.monotonic() - t0),
     }
     destino = BASE / "evidence" / f"_perfil-{aaaamm}.json"
     destino.write_text(
@@ -79,7 +79,7 @@ def main() -> int:
 
     print(f"\n{comp} · {total:,} linhas · {len(ufs)} UFs · "
           f"{len(bancos)} bancos · {len(especies)} espécies · "
-          f"{time.time() - t0:.0f}s")
+          f"{time.monotonic() - t0:.0f}s")
     print(f"  {destino.relative_to(BASE)}")
     return 0
 

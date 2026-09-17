@@ -45,7 +45,7 @@ def main() -> int:
     shutil.rmtree(parcial, ignore_errors=True)
     parcial.mkdir(parents=True)
 
-    t0 = time.time()
+    t0 = time.monotonic()
     con = duckdb.connect(str(parcial / "inss.duckdb"))
 
     # dicionário oficial como tabela — o join é pelo CÓDIGO.
@@ -191,7 +191,7 @@ def main() -> int:
                       f"(DF-INSS-005: deixou de ser chave)")
 
     con.close()
-    segundos = round(time.time() - t0)
+    segundos = round(time.monotonic() - t0)
 
     if falhas:
         shutil.rmtree(parcial, ignore_errors=True)
