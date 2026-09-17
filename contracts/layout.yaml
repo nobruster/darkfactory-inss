@@ -11,7 +11,10 @@
 # TODO número neste arquivo foi MEDIDO na fonte, não estimado.
 # Evidências: evidence/_perfil-cobertura.json · evidence/_totais-controle.json
 
-version: 4
+version: 5
+# v5 (17/09/2026) — âncora de 2025-11 (ADR 0008). Enfraquece a hipótese do
+# 0007: dezembro não é patamar, é vale. Cinco competências ancoradas.
+#
 # v4 (17/09/2026) — âncora de 2025-12 (ADR 0007). Primeira competência
 # ancorada sob a regra do ADR 0006, e a que trouxe o degrau de R$ 4,3 bi
 # entre dezembro e janeiro — medido, não explicado.
@@ -71,12 +74,32 @@ controle:
 # Competência sem âncora aqui NÃO publica como ACEITO — publica como
 # ACEITO_SEM_ANCORA, que é um estado visível, não um silêncio.
 controle_por_competencia:
-  # ⚠ 2025-12 tem MAIS benefícios que 2026-01 (+69.390) e R$ 4,33 bi a MENOS
-  #   (−5,51%). A média cai de R$ 1.888,79 para R$ 1.781,71 (−5,67%), e as
-  #   três competências de 2026 têm média idêntica a menos de 1 real.
-  #   Degrau limpo, não ruído: tem a forma de reajuste anual do piso, que
-  #   entra em janeiro. NÃO CONFIRMADO — ver ADR 0007. Não é defeito da
-  #   fábrica: a âncora foi medida na fonte, não produzida pelo pipeline.
+  # ⚠ A MÉDIA POR BENEFÍCIO TEM UM VALE EM DEZEMBRO — medido, não explicado.
+  #
+  #   2025-11  R$ 1.825,18
+  #   2025-12  R$ 1.781,71   −2,38%   ← vale
+  #   2026-01  R$ 1.888,79   +6,01%
+  #   2026-02  R$ 1.889,15   +0,02%
+  #   2026-03  R$ 1.888,14   −0,05%
+  #
+  #   O ADR 0007 registrou a hipótese "reajuste anual do piso entra em
+  #   janeiro". Ao medir 2025-11 ela ENFRAQUECEU: dezembro não é o patamar
+  #   de 2025, é um vale — novembro é MAIOR que dezembro. Reajuste explicaria
+  #   um degrau entre dois patamares estáveis, não isto. Ver ADR 0008.
+  #
+  #   Classificação: UNRESOLVED. NÃO é defeito da fábrica — todas as âncoras
+  #   foram medidas na fonte, independentes do pipeline, e conferem com ele.
+  #
+  #   ⚠ Nenhum gate compara competências: um salto de 6% na média passa sem
+  #     que nada acuse. Lacuna conhecida, não problema resolvido.
+  "2025-11":
+    count_linhas: 41643003
+    sum_vl_liquido: "76006055211.13"
+    min_vl_liquido: "0.00"
+    max_vl_liquido: "58441.56"
+    linhas_invalidas: 0
+    medido_em: "2026-09-17"
+    evidencia: "evidence/_totais-202511.json"
   "2025-12":
     count_linhas: 41641943
     sum_vl_liquido: "74193966071.52"
