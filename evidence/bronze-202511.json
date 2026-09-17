@@ -1,19 +1,19 @@
 {
   "status": "ACEITO",
   "publicado": true,
-  "ancora": "evidence/_totais-202512.json",
+  "ancora": "evidence/_totais-202511.json",
   "gates": {
     "rejeicoes_zero": true,
     "count_confere": true,
     "soma_confere": true
   },
-  "competencia": "2025-12",
-  "gerado_em": "2026-09-17T17:05:08.548058+00:00",
-  "fonte_sha256": "9d6565875e3e1f8f243de2963e222d9414fdf22dfe0c3cb59118854ee2f34527",
-  "parquet_sha256": "986ed3b9e30341022aae503d89d8f2b9ca26f989eaf864488cb6027c5d615727",
-  "parquet_bytes": 305845303,
-  "linhas": 41641943,
-  "sum_vl_liquido": "74193966071.52",
+  "competencia": "2025-11",
+  "gerado_em": "2026-09-17T21:03:38.079832+00:00",
+  "fonte_sha256": "44d8ab6f57b0ab683b5d94ffa5949624d6f22f7b2537332c8461f4e303ee4197",
+  "parquet_sha256": "e83034d676f451707618832f3832759396081aeb82b86b1eb54e3e88bdf40f58",
+  "parquet_bytes": 313122489,
+  "linhas": 41643003,
+  "sum_vl_liquido": "76006055211.13",
   "colunas": [
     "despacho",
     "sexo",
@@ -31,6 +31,6 @@
     "especie_nome_truncado"
   ],
   "blocos": 21,
-  "segundos": 125,
-  "contrato_versao": 4
+  "segundos": 127,
+  "contrato_versao": 5
 }

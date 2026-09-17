@@ -1,8 +1,8 @@
 {
   "status": "ACEITO",
   "publicado": true,
-  "competencia": "2025-12",
-  "gerado_em": "2026-09-17T17:05:39.669194+00:00",
+  "competencia": "2025-11",
+  "gerado_em": "2026-09-17T21:04:11.899000+00:00",
   "tabela": "gold_concentracao_bancaria",
   "grao": [
     "competencia",
@@ -10,8 +10,8 @@
     "uf_residencia"
   ],
   "linhas": 419,
-  "qtd_beneficios": 41641943,
-  "sum_vl_total": "74193966071.52",
+  "qtd_beneficios": 41643003,
+  "sum_vl_total": "76006055211.13",
   "gates": {
     "soma_confere_silver": true,
     "soma_confere_ancora": true,

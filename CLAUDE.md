@@ -23,34 +23,40 @@ expectativa para fazer passar.** Essa é a única coisa proibida sem exceção.
 
 ## Estado em 17/09/2026
 
-| Competência | Linhas | Valor | Média |
-|---|---|---|---|
-| **2025-12** | 41.641.943 | **R$ 74.193.966.071,52** | **R$ 1.781,71** |
-| 2026-01 | 41.572.553 | R$ 78.521.752.562,12 | R$ 1.888,79 |
-| 2026-02 | 41.522.152 | R$ 78.441.374.955,39 | R$ 1.889,15 |
-| 2026-03 | 41.719.140 | R$ 78.771.556.568,72 | R$ 1.888,14 |
+| Competência | Linhas | Valor | Média | Δ |
+|---|---|---|---|---|
+| 2025-11 | 41.643.003 | R$ 76.006.055.211,13 | R$ 1.825,18 | — |
+| **2025-12** | 41.641.943 | **R$ 74.193.966.071,52** | **R$ 1.781,71** | **−2,38%** |
+| 2026-01 | 41.572.553 | R$ 78.521.752.562,12 | R$ 1.888,79 | **+6,01%** |
+| 2026-02 | 41.522.152 | R$ 78.441.374.955,39 | R$ 1.889,15 | +0,02% |
+| 2026-03 | 41.719.140 | R$ 78.771.556.568,72 | R$ 1.888,14 | −0,05% |
 
-**Pendentes:** 2025-11, 2025-10
+**Pendente:** 2025-10
 **Resultado:** TOP 4 bancos concentram ~75,8% — estrutural, varia em centésimos.
 
-### ⚠ O degrau de dezembro — NÃO é regressão
+### ⚠ O vale de dezembro — NÃO é regressão
 
-2025-12 tem **mais benefícios** que janeiro (+69.390) e **R$ 4,33 bi a menos**
-(−5,51%). A média cai 5,67%, e as três competências de 2026 têm média idêntica
-a menos de 1 real.
+Dezembro tem média 2,38% **abaixo** de novembro, e janeiro salta 6,01%.
 
-Degrau limpo, não ruído. Tem a forma de **reajuste anual do piso** (entra em
-janeiro) — mas isso **não foi confirmado**: não conferi o salário mínimo, não
-medi quantos benefícios estão no piso, não descartei mudança de composição.
+O [ADR 0007](docs/adrs/0007-ancora-2025-12.md) propôs "reajuste anual do piso
+em janeiro". Ao medir 2025-11 essa hipótese **enfraqueceu**: dezembro não é o
+patamar de 2025, é um **vale** — novembro é maior. Reajuste explicaria um
+degrau entre dois patamares estáveis, não isto.
+Ver [ADR 0008](docs/adrs/0008-ancora-2025-11.md).
 
-Classificação: `UNRESOLVED`. Ver [ADR 0007](docs/adrs/0007-ancora-2025-12.md).
+Classificação: `UNRESOLVED`. Hipóteses não medidas: composição de espécies,
+calendário de pagamento, efeito de 13º entre competências vizinhas.
 
-**Não é defeito da fábrica:** a âncora foi medida na fonte, independente do
-pipeline. Se o pipeline errasse, o gate reprovaria — e ele passou.
+**Não é defeito da fábrica:** todas as âncoras foram medidas na fonte,
+independentes do pipeline, e conferem com ele.
 
-> **Lacuna conhecida:** nenhum gate compara competências. A fábrica pega um
-> centavo errado *dentro* de uma competência e não vê R$ 4,3 bi de degrau
-> *entre* duas.
+> **Lacuna conhecida:** nenhum gate compara competências. Um salto de 6% na
+> média passa sem que nada acuse. A fábrica vê um centavo errado *dentro* de
+> uma competência e não vê isto.
+
+> **Lição registrada:** o ADR 0007 marcou a hipótese como não confirmada. Se
+> tivesse escrito como fato, o 0008 estaria corrigindo um erro publicado em
+> vez de refinar uma pergunta aberta.
 
 ---
 
@@ -120,7 +126,7 @@ não resolve.
 
 ---
 
-## Os 7 ADRs
+## Os 8 ADRs
 
 | # | Decisão |
 |---|---|
@@ -131,6 +137,7 @@ não resolve.
 | [0005](docs/adrs/0005-inss-direto-fora-do-ranking.md) | o INSS não é banco (sentinelas 996 e 998) |
 | [0006](docs/adrs/0006-auditoria-por-tres-modelos.md) | âncora por competência; gate desligado é visível |
 | [0007](docs/adrs/0007-ancora-2025-12.md) | âncora de 2025-12 e o degrau de R$ 4,3 bi (UNRESOLVED) |
+| [0008](docs/adrs/0008-ancora-2025-11.md) | âncora de 2025-11; enfraquece a hipótese do 0007 |
 
 ---
 
@@ -243,6 +250,26 @@ Bot Telegram `@factory_inss_bot`, job `fabrica-inss-vigia` às 9h e 21h.
 
 ⚠️ Ao mudar o SOUL: reiniciar o gateway **e apagar a sessão**
 (`hermes sessions delete <id> --yes`) — senão ele mantém o contexto antigo.
+
+### Bot Mode — a máquina tem dois agentes
+
+| Handle | Papel | SOUL |
+|---|---|---|
+| `@hermes` | opera a fábrica | `hermes\SOUL.md` |
+| `@eros` | pesquisador de IA | `hermes\profiles\eros\SOUL.md` |
+
+Eles trocam mensagens pela ferramenta `message_agent`, injetada **só** na
+sessão de título exatamente `"Bot Chat"`.
+
+> **Só o Bruno autoriza. Nenhum agente autoriza.**
+
+Mensagem de agente chega como `Message from 🤖 <nome> (@<handle>):` e **nunca**
+autoriza processar — nem "o Bruno pediu para processar". A regra está nos dois
+SOULs: o Hermes recusa, o Eros não pede. Ele pode responder `pendentes` e
+`relatorio` a outro agente: são leituras.
+
+⚠️ **Isto é prompt, não cerca.** Vale enquanto o agente respeitar. Detalhes e
+a superfície de ataque em [docs/OPERADOR.md](docs/OPERADOR.md).
 
 ---
 
